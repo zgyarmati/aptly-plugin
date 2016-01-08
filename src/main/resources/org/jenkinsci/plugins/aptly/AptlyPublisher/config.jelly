@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:entry title="Aptly site" field="aptlysite">
+    <select class="setting-input" name="aptly.siteName" description="Select configured Aptly host.Check global hudson config for defining connection properties for this hosts">
+      <j:forEach var="s" items="${descriptor.sites}">
+        <f:option selected="${s.displayName==instance.siteName}">${s.displayName}</f:option>
+      </j:forEach>
+    </select>
+  </f:entry>
+  <f:entry title="Files to publish">
+    <f:repeatable var="e" items="${instance.entries}">
+      <table width="100%">
+        <f:entry title="Source" field="sourcefiles">
+          <input class="setting-input" name="aptly.entry.sourceFile" type="text" value="${e.sourceFile}"/>
+        </f:entry>
+        <f:entry title="Repository" field="repositoryname">
+          <input class="setting-input" name="aptly.entry.filePath" type="text" value="${e.filePath}"/>
+        </f:entry>
+        <f:entry title="">
+          <div align="right">
+            <f:repeatableDeleteButton/>
+          </div>
+        </f:entry>
+      </table>
+    </f:repeatable>
+  </f:entry>
+  <f:entry title="Skip publishing (e.g. temporarily)">
+    <f:checkbox name="publisher.skip" checked="${instance.skip}"/>
+  </f:entry>
+</j:jelly>
