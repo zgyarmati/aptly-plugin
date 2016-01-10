@@ -9,6 +9,15 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
+
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+import com.mashape.unirest.request.GetRequest;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * This class
  *
@@ -94,6 +103,26 @@ public class AptlySite {
         }
         this.username = username;
         this.password = password;
+    }
+
+
+
+    public String getAptlyServerVersion() {
+        String retval = "";
+        try {
+            // http://localhost:1080/api/version
+            HttpResponse<JsonNode> jsonResponse = Unirest.get("http://" + this.hostname + ":" + this.port + "/api/version")
+                    .header("accept", "application/json").asJson();
+            
+            Logger.getLogger(AptlySite.class.getName()).log(Level.SEVERE, null,
+                    "Response: " + jsonResponse.getBody().toString());
+                    
+            retval = jsonResponse.getBody().toString();
+        } catch (UnirestException ex) {
+            Logger.getLogger(AptlySite.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return retval;
     }
 
     /**

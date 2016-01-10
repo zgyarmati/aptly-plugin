@@ -39,25 +39,11 @@ public class AptlyPublisher extends Notifier {
 	@Extension
 	public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
 
-	/**
-	 * This is a SimpleDateFormat instance to get a directory name which include a time stamp.
-	 */
-	private String repoSiteName;
-//	private final List<Entry> entries = new ArrayList<Entry>();
-	private Boolean skip = false;
+    private String repoSiteName;
+    private final List<PackageItem> packageItems = new ArrayList<PackageItem>();
+    private Boolean skip = false;
 
-    public void setSkip(boolean skip) {
-        this.skip = skip;
-    }
-
-    public boolean isSkip() {
-        return skip;
-    }
-
-    // TODO needed?
-    public AptlyPublisher() {
-        int a = 2;
-    }
+    public AptlyPublisher() { }
 
     /**
     * The constructor which take a configured Aptly repo site name to use
@@ -69,20 +55,36 @@ public class AptlyPublisher extends Notifier {
         this.repoSiteName = repoSiteName;
     }
 
-//    public String getSiteName() {
-//		String repositename = repoSiteName;
-//		if (name == null) {
-//			FTPSite[] sites = DESCRIPTOR.getSites();
-//			if (sites.length > 0) {
-//				name = sites[0].getName();
-//			}
-//		}
-//		return name;
-//	}
+    public void setSkip(boolean skip) {
+        this.skip = skip;
+    }
 
-//	public void setSiteName(String siteName) {
-//		this.siteName = siteName;
-//	}
+    public boolean isSkip() {
+        return skip;
+    }
+
+    public List<PackageItem> getPackageItems(){
+        System.console().printf(">>>>>> getPackageItems %d\n", this.packageItems.size());
+//        System.console().printf(">>>>>> getPackageItems %s\n", this.packageItems.get(0).getSourceFiles());
+        return this.packageItems;
+    }
+
+
+    public String getRepoSiteName() {
+		String repositename = repoSiteName;
+		if (repositename == null) {
+		    AptlySite[] sites = DESCRIPTOR.getSites();
+			if (sites.length > 0) {
+				repositename = sites[0].getName();
+			}
+		}
+        System.console().printf(">>> getSiteName ret: %s\n", repositename);
+		return repositename;
+	}
+
+	public void setRepoSiteName(String repoSiteName) {
+		this.repoSiteName = repoSiteName;
+	}
 
     /**
     * This method returns the configured AptlySite object which match the repoSiteName.
@@ -111,7 +113,7 @@ public class AptlyPublisher extends Notifier {
 
 	/**
 	 * {@inheritDoc}
-	 * 
+	 *
 	 * @param build
 	 * @param launcher
 	 * @param listener
@@ -139,6 +141,13 @@ public class AptlyPublisher extends Notifier {
         try {
             aptlysite = getSite();
             listener.getLogger().println("Connecting to " + aptlysite.getHostname());
+            listener.getLogger().println("Port " + aptlysite.getPort());
+            listener.getLogger().println("Username " + aptlysite.getUsername());
+            listener.getLogger().println("Password " + aptlysite.getPassword());
+            listener.getLogger().println("Timeout " + aptlysite.getTimeOut());
+
+            String result = aptlysite.getAptlyServerVersion();
+            listener.getLogger().println("Version result " +  result);
 
         } catch (Throwable th) {
             th.printStackTrace(listener.error("Failed to upload files"));
@@ -153,13 +162,14 @@ public class AptlyPublisher extends Notifier {
     }
 
     /**
-    * This class holds the metadata for the FTPPublisher.
+    * This class holds the metadata for the AptlyPublisher.
     * @author zgyarmati <mr.zoltan.gyarmati@gmail.com>
     * @see Descriptor
     */
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
         private final CopyOnWriteList<AptlySite> sites = new CopyOnWriteList<AptlySite>();
+        private final CopyOnWriteList<PackageItem> packageItems = new CopyOnWriteList<PackageItem>();
 
 
         /**
@@ -172,15 +182,24 @@ public class AptlyPublisher extends Notifier {
 
         /**
         * The name of the plugin to display them on the project configuration web page.
-        * 
+        *
         * {@inheritDoc}
-        * 
+        *
         * @return {@inheritDoc}
         * @see hudson.model.Descriptor#getDisplayName()
         */
         @Override
         public String getDisplayName() {
             return "Publish built packages via Aptly";
+        }
+
+        /**
+        * The getter for the packageItems field. (this field is set by the UI part of this plugin see config.jelly file)
+        *
+        * @return the value of the packageItems field
+        */
+        public CopyOnWriteList<PackageItem> getPackageItems() {
+            return packageItems;
         }
 
 
@@ -203,10 +222,20 @@ public class AptlyPublisher extends Notifier {
         */
         @Override
         public Publisher newInstance(StaplerRequest req, JSONObject formData) {
+            System.console().printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@ SYSTEMCONSOLPRINTF");
             AptlyPublisher pub = new AptlyPublisher();
             req.bindParameters(pub, "publisher.");
             req.bindParameters(pub, "aptly.");
-//            pub.getEntries().addAll(req.bindParametersToList(Entry.class, "aptly.entry."));
+            pub.getPackageItems().addAll(req.bindParametersToList(PackageItem.class, "aptly.entry."));
+//            JSONObject data;
+//            try {
+//                data = req.getSubmittedForm();
+//            } catch (Exception e) {
+//                System.console().printf(">>>>>>>>> getSubmittedForm Exception: " + e.getMessage() + "\n");
+//                return null;
+//            }
+//            List<PackageItem> entries = req.bindJSONToList(PackageItem.class, data.getJSONObject("publisher").get("items"));
+////            pub.getPackageItems().addAll(entries);
             return pub;
         }
 
@@ -237,6 +266,7 @@ public class AptlyPublisher extends Notifier {
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) {
             sites.replaceBy(req.bindParametersToList(AptlySite.class, "aptly."));
+            packageItems.replaceBy(req.bindParametersToList(PackageItem.class, "aptly.entry."));
             save();
             return true;
         }
