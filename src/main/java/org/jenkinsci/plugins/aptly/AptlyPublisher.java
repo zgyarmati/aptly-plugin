@@ -148,11 +148,14 @@ public class AptlyPublisher extends Notifier {
             listener.getLogger().println("Timeout " + aptlysite.getTimeOut());
 
             AptlyRestClient client = new AptlyRestClient(aptlysite.getHostname(),
-                                aptlysite.getPort(), aptlysite.getTimeOut(),
+                                Integer.parseInt(aptlysite.getPort()), aptlysite.getTimeOut(),
                                 aptlysite.getUsername(), aptlysite.getPassword());
 
             String result = client.getAptlyServerVersion();
             listener.getLogger().println("Version result " +  result);
+            // ################### UPLOAD THE FILES ############################
+            List<String> filelist = new ArrayList<String>();
+            client.uploadFiles(filelist);
 
         } catch (Throwable th) {
             th.printStackTrace(listener.error("Failed to upload files"));
@@ -289,6 +292,8 @@ public class AptlyPublisher extends Notifier {
             }
             AptlySite site = new AptlySite(hostname, request.getParameter("port"), request.getParameter("timeOut"), request.getParameter("user"),
                 request.getParameter("pass"));
+                System.console().printf(">>>>>>>>> doLoginCheck() port: %s\n ",
+                request.getParameter("port"));
             try {
                 //site.createSession();
                 //site.closeSession();

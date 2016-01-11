@@ -85,6 +85,7 @@ public class AptlySite {
     */
     public AptlySite(String hostname, String port, String timeOut, String username, String password) {
         this.hostname = hostname;
+        System.console().printf(">>>>>>>>> AptlySite() port: %s\n: ", port);
         try {
             this.port = Integer.parseInt(port);
             this.timeOut = Integer.parseInt(timeOut);
@@ -132,7 +133,7 @@ public class AptlySite {
     *
     * @return the profile name
     */
-    public String getProfileName() {
+    public String getProfileName(){
         return profileName;
     }
 
@@ -170,8 +171,8 @@ public class AptlySite {
     *
     * @return the port
     */
-    public int getPort() {
-        return  port;
+    public String getPort() {
+        return  "" + port;
     }
 
     /**
@@ -181,6 +182,7 @@ public class AptlySite {
     *          the new port
     */
     public void setPort(String port) {
+        System.console().printf(">>>>>>>>> setPort() port: %s\n: ", port);
         if (port != null) {
             try {
                 this.port = Integer.parseInt(port);
@@ -193,14 +195,6 @@ public class AptlySite {
 
     }
 
-    /**
-    * Gets the integer port.
-    *
-    * @return the integer port
-    */
-    public int getIntegerPort() {
-        return port;
-    }
 
     /**
     * Gets the username.

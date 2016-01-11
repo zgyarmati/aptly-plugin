@@ -1,8 +1,8 @@
+<?xml version="1.0"?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <!-- nothing to configure -->
   <f:section title="Aptly repository hosts">
-    <f:entry title="Aptly sites"
-      description="Aptly sites that projects will want to connect">
+    <f:entry title="Aptly sites" description="Aptly sites that projects will want to connect">
       <f:repeatable var="site" items="${descriptor.sites}">
         <table width="100%">
           <f:entry title="Aptly Site Name" field="sitename">
@@ -11,32 +11,27 @@
           <f:entry title="hostname" field="hostname">
             <f:textbox name="aptly.hostname" value="${site.hostname}"/>
           </f:entry>
+
           <f:entry title="Port" field="port">
             <f:textbox name="aptly.port" value="${site.port}"/>
           </f:entry>
+
           <f:entry title="TimeOut" field="timeout">
             <f:textbox name="aptly.timeOut" value="${site.timeOut}"/>
           </f:entry>
           <f:entry title="User Name" field="username">
-            <f:textbox name="aptly.username" value="${site.username}"
-				checkMethod="post"
-				checkUrl="'${rootURL}/publisher/AptlyPublisher/loginCheck?hostname='+escape(Form.findMatchingInput(this,'aptly.hostname').value)+'&amp;port='+escape(Form.findMatchingInput(this,'aptly.port').value)+'&amp;user='+escape(this.value)+'&amp;pass='+escape(Form.findMatchingInput(this,'aptly.password').value)"
-			/>
+            <f:textbox name="aptly.username" value="${site.username}" checkMethod="post" checkUrl="'${rootURL}/publisher/AptlyPublisher/loginCheck?hostname='+escape(Form.findMatchingInput(this,'aptly.hostname').value)+'&amp;port='+escape(Form.findMatchingInput(this,'aptly.port').value)+'&amp;user='+escape(this.value)+'&amp;pass='+escape(Form.findMatchingInput(this,'aptly.password').value)"/>
           </f:entry>
           <f:entry title="Password">
-            <input class="setting-input" name="aptly.password"
-                   type="password" value="${site.password}"
-				   onchange="Form.findMatchingInput(this,'ftp.username').onchange()"
-                    />
+            <input class="setting-input" name="aptly.password" type="password" value="${site.password}" onchange="Form.findMatchingInput(this,'ftp.username').onchange()"/>
           </f:entry>
           <f:entry title="">
             <div align="right">
-              <f:repeatableDeleteButton />
+              <f:repeatableDeleteButton/>
             </div>
           </f:entry>
         </table>
       </f:repeatable>
     </f:entry>
   </f:section>
-
 </j:jelly>

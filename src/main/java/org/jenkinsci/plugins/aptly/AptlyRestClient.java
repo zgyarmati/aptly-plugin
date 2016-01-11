@@ -6,11 +6,15 @@ import org.json.JSONObject;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.request.GetRequest;
+import com.mashape.unirest.request.HttpRequestWithBody;
 
 import org.apache.commons.lang.StringUtils;
 import java.io.PrintStream;
 import java.io.IOException;
 import java.io.Console;
+import java.util.List;
+import java.io.File;
+import java.util.UUID;
 
 
 
@@ -27,8 +31,8 @@ public class AptlyRestClient {
 
 
     private String hostname;
-    private static int portnum;
-    private static int timeout;
+    private int portnum;
+    private int timeout;
     private String username;
     private String password;
 
@@ -61,32 +65,77 @@ public class AptlyRestClient {
         return retval;
     }
 
+    public void uploadFiles(List<String> filepaths) throws AptlyRestException {
+        //used to distinguish the upload dir
+        String uuid = UUID.randomUUID().toString();
+        System.out.println("upload dir name UUID = " + uuid);
+        try {
+            HttpRequestWithBody req = Unirest.post("http://" + hostname + ":" + portnum +
+                                         "/api/files/" + uuid);
+            req = req.header("accept", "application/json");
+            //TODO auth
+
+            HttpResponse<JsonNode> jsonResponse = req.field("file", new File("/tmp/smarttimetable-webgui_0.5.41_all.deb")).asJson();
+            System.console().printf("Response: " + jsonResponse.getBody().toString() + "\n");
+        } catch (UnirestException ex) {
+            System.console().printf("Failed to get upload: %s\n", ex.toString());
+            throw new AptlyRestException(ex.toString());
+        }
+        // add to the repo
+        try {
+            HttpRequestWithBody req = Unirest.post("http://" + hostname + ":" + portnum +
+                                         "/api/repos/coolproject-testing-jessie/file/" + uuid);
+            req = req.header("accept", "application/json");
+            //TODO auth
+
+            HttpResponse<JsonNode> jsonResponse = req.asJson();
+            System.console().printf("Response: " + jsonResponse.getBody().toString() + "\n");
+        } catch (UnirestException ex) {
+            System.console().printf("Failed to add uploaded packages to repo: %s\n", ex.toString());
+            throw new AptlyRestException(ex.toString());
+        }
+
+        // update published repo
+        try {
+            HttpRequestWithBody req = Unirest.put("http://" + hostname + ":" + portnum +
+                                         "/api/publish//jessie");
+            req = req.header("accept", "application/json");
+            //TODO auth
+
+            HttpResponse<JsonNode> jsonResponse = req.field("Snapshots", "").asJson();
+            System.console().printf("Response: " + jsonResponse.getBody().toString() + "\n");
+        } catch (UnirestException ex) {
+            System.console().printf("Failed to add uploaded packages to repo: %s\n", ex.toString());
+            throw new AptlyRestException(ex.toString());
+        }
+    }
+
 
     /**
      * @return the portnum
      */
-    public static int getPortnum() {
+    public  int getPortnum() {
         return portnum;
     }
 
     /**
      * @param aPortnum the portnum to set
      */
-    public static void setPortnum(int aPortnum) {
+    public void setPortnum(int aPortnum) {
         portnum = aPortnum;
     }
 
     /**
      * @return the timeout
      */
-    public static int getTimeout() {
+    public int getTimeout() {
         return timeout;
     }
 
     /**
      * @param aTimeout the timeout to set
      */
-    public static void setTimeout(int aTimeout) {
+    public void setTimeout(int aTimeout) {
         timeout = aTimeout;
         Unirest.setTimeouts(timeout * 1000, timeout * 1000);
     }
@@ -132,9 +181,4 @@ public class AptlyRestClient {
     public void setPassword(String password) {
         this.password = password;
     }
-
-
-
-
-
 }

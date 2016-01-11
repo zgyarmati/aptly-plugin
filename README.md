@@ -15,9 +15,23 @@ apt-get install aptly
 Running it:
 aptly api serve -listen=:1080
 
+```shell
+aptly repo create -distribution="jessie" -component="coolproject-testing" coolproject-testing-jessie
+aptly repo add coolproject-testing-jessie smartframeserver-snmpd_0.2.1_amd64.deb
+aptly publish repo coolproject-testing-jessie
+```
 
 
-aptly repo create delbalaton-testing
+```shell
+aptly repo create -distribution="jessie" -component="coolproject-testing" coolproject-testing-jessie
+aptly publish repo -architectures="amd64,i386" coolproject-testing-jessie
+```
+
+```shell
+aptly repo add coolproject-testing-jessie smartframeserver-snmpd_0.2.1_amd64.deb
+aptly publish update jessie
+```
+
 
 
 ## Jenkins plugin setup
