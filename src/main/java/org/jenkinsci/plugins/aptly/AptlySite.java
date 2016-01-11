@@ -10,16 +10,11 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.JsonNode;
-import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
-import com.mashape.unirest.request.GetRequest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * This class
+ * This class represents an Aptly site's connection and authentication details
  *
  * @author $Author: zgyarmati <mr.zoltan.gyarmati@gmail.com>
  */
@@ -82,16 +77,11 @@ public class AptlySite {
     /**
     * Instantiates a new Aptly site.
     *
-    * @param hostname
-    *          the hostname
-    * @param port
-    *          the port
-    * @param timeOut
-    *          the time out
-    * @param username
-    *          the username
-    * @param password
-    *          the password
+    * @param hostname the hostname (or IP) of the Aptly site
+    * @param port     the port
+    * @param timeOut  the time out
+    * @param username the username
+    * @param password the password
     */
     public AptlySite(String hostname, String port, String timeOut, String username, String password) {
         this.hostname = hostname;
@@ -103,26 +93,6 @@ public class AptlySite {
         }
         this.username = username;
         this.password = password;
-    }
-
-
-
-    public String getAptlyServerVersion() {
-        String retval = "";
-        try {
-            // http://localhost:1080/api/version
-            HttpResponse<JsonNode> jsonResponse = Unirest.get("http://" + this.hostname + ":" + this.port + "/api/version")
-                    .header("accept", "application/json").asJson();
-            
-            Logger.getLogger(AptlySite.class.getName()).log(Level.SEVERE, null,
-                    "Response: " + jsonResponse.getBody().toString());
-                    
-            retval = jsonResponse.getBody().toString();
-        } catch (UnirestException ex) {
-            Logger.getLogger(AptlySite.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        return retval;
     }
 
     /**
@@ -200,8 +170,8 @@ public class AptlySite {
     *
     * @return the port
     */
-    public String getPort() {
-        return "" + port;
+    public int getPort() {
+        return  port;
     }
 
     /**

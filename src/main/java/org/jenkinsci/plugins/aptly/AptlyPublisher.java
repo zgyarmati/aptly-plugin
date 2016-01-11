@@ -26,7 +26,8 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
- * This class implements the Aptly publisher
+ * This class implements the Aptly publisher, takes care of orchestring the
+ * configuration and the uploading/publishing process
  *
  * @author $Author: zgyarmati <mr.zoltan.gyarmati@gmail.com>
  *
@@ -140,13 +141,17 @@ public class AptlyPublisher extends Notifier {
         AptlySite aptlysite = null;
         try {
             aptlysite = getSite();
-            listener.getLogger().println("Connecting to " + aptlysite.getHostname());
+            listener.getLogger().println("Using aptly site: " + aptlysite.getHostname());
             listener.getLogger().println("Port " + aptlysite.getPort());
             listener.getLogger().println("Username " + aptlysite.getUsername());
             listener.getLogger().println("Password " + aptlysite.getPassword());
             listener.getLogger().println("Timeout " + aptlysite.getTimeOut());
 
-            String result = aptlysite.getAptlyServerVersion();
+            AptlyRestClient client = new AptlyRestClient(aptlysite.getHostname(),
+                                aptlysite.getPort(), aptlysite.getTimeOut(),
+                                aptlysite.getUsername(), aptlysite.getPassword());
+
+            String result = client.getAptlyServerVersion();
             listener.getLogger().println("Version result " +  result);
 
         } catch (Throwable th) {

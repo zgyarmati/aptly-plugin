@@ -35,7 +35,8 @@ import hudson.model.Hudson;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
- * Represents a package to publish into a repository.
+ * Represents a package or a set of packages to publish into a repository on a
+ * AptlySite
  * @author $Author: zgyarmati <mr.zoltan.gyarmati@gmail.com>
  */
 public class PackageItem implements Describable<PackageItem>, Serializable {
