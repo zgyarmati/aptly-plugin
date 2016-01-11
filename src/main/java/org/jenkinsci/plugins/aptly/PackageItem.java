@@ -43,6 +43,7 @@ public class PackageItem implements Describable<PackageItem>, Serializable {
 
     private String sourceFiles;
     private String repositoryName;
+    private String distributionName;
 
     /**
      * Constructor
@@ -50,9 +51,11 @@ public class PackageItem implements Describable<PackageItem>, Serializable {
      */
     @DataBoundConstructor
     public PackageItem(String sourceFiles,
-                          String repositoryName) {
+                       String distributionName,
+                       String repositoryName) {
         System.console().printf("###### PackageItem constructor\n\n");
         this.repositoryName = repositoryName;
+        this.distributionName = distributionName;
         this.sourceFiles = sourceFiles;
         //this.sourceFiles = Arrays.asList(sourceFiles.split("\\s*,\\s*"));
     }
@@ -77,6 +80,14 @@ public class PackageItem implements Describable<PackageItem>, Serializable {
 
     public void setRepositoryName(String repositoryName) {
         this.repositoryName = repositoryName;
+    }
+
+    public void setDistributionName(String distributionName) {
+        this.distributionName = distributionName;
+    }
+
+    public String getDistributionName(){
+        return this.distributionName;
     }
 
 
