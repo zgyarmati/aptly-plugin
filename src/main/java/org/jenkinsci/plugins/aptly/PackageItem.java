@@ -25,7 +25,7 @@ package org.jenkinsci.plugins.aptly;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import hudson.Extension;
 import hudson.model.Describable;
@@ -67,6 +67,15 @@ public class PackageItem implements Describable<PackageItem>, Serializable {
     public String getSourceFiles() {
         System.console().printf("##### getSourceFiles %s\n\n", sourceFiles);
         return sourceFiles;
+    }
+
+    public List<String> getSourceFileList(String basepath){
+
+        List<String> filenamelist = Arrays.asList(sourceFiles.split("\\s*,\\s*"));
+        for (ListIterator i = filenamelist.listIterator(); i.hasNext();){
+            i.set(basepath + "/" + i.next());
+        }
+        return filenamelist;
     }
 
     public String getRepositoryName(){

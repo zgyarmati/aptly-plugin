@@ -65,7 +65,7 @@ public class AptlyRestClient {
         return retval;
     }
 
-    public void uploadFiles(List<String> filepaths) throws AptlyRestException {
+    public String uploadFiles(List<String> filepaths) throws AptlyRestException {
         //used to distinguish the upload dir
         String uuid = UUID.randomUUID().toString();
         System.out.println("upload dir name UUID = " + uuid);
@@ -73,20 +73,28 @@ public class AptlyRestClient {
             HttpRequestWithBody req = Unirest.post("http://" + hostname + ":" + portnum +
                                          "/api/files/" + uuid);
             req = req.header("accept", "application/json");
-            //TODO auth
+            if( username != null && !username.isEmpty()){
+                req = req.basicAuth(username, password);
+            }
 
             HttpResponse<JsonNode> jsonResponse = req.field("file", new File("/tmp/smarttimetable-webgui_0.5.41_all.deb")).asJson();
             System.console().printf("Response: " + jsonResponse.getBody().toString() + "\n");
         } catch (UnirestException ex) {
-            System.console().printf("Failed to get upload: %s\n", ex.toString());
+            System.console().printf("Failed to upload the packages: %s\n", ex.toString());
             throw new AptlyRestException(ex.toString());
         }
+        return uuid;
+    }
+
+    public void addUploadedFilesToRepo(String reponame, String uploaddir) throws AptlyRestException {
         // add to the repo
         try {
             HttpRequestWithBody req = Unirest.post("http://" + hostname + ":" + portnum +
-                                         "/api/repos/coolproject-testing-jessie/file/" + uuid);
+                                            "/api/repos/"+ reponame +"/file/" + uploaddir);
             req = req.header("accept", "application/json");
-            //TODO auth
+            if( username != null && !username.isEmpty()){
+                req = req.basicAuth(username, password);
+            }
 
             HttpResponse<JsonNode> jsonResponse = req.asJson();
             System.console().printf("Response: " + jsonResponse.getBody().toString() + "\n");
@@ -94,15 +102,20 @@ public class AptlyRestClient {
             System.console().printf("Failed to add uploaded packages to repo: %s\n", ex.toString());
             throw new AptlyRestException(ex.toString());
         }
+    }
 
-        // update published repo
+    // update published repo
+    public void updatePublishRepo(String reponame, String distribution) throws AptlyRestException {
         try {
             HttpRequestWithBody req = Unirest.put("http://" + hostname + ":" + portnum +
                                          "/api/publish//jessie");
             req = req.header("accept", "application/json");
-            //TODO auth
-
-            HttpResponse<JsonNode> jsonResponse = req.field("Snapshots", "").asJson();
+            req = req.header("Content-Type", "application/json");
+            if( username != null && !username.isEmpty()){
+                req = req.basicAuth(username, password);
+            }
+            HttpResponse<JsonNode> jsonResponse = req.body("{\"Signing\":{\"Skip\": true }}").asJson();
+            //HttpResponse<JsonNode> jsonResponse = req.field("Snapshots", "").asJson();
             System.console().printf("Response: " + jsonResponse.getBody().toString() + "\n");
         } catch (UnirestException ex) {
             System.console().printf("Failed to add uploaded packages to repo: %s\n", ex.toString());

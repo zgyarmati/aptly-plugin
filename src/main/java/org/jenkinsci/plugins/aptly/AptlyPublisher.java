@@ -128,6 +128,7 @@ public class AptlyPublisher extends Notifier {
 	public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
 
         listener.getLogger().println("Perform AptlyPublisher ");
+        String workspacedir = build.getWorkspace().toURI().normalize().toString();
         if (skip != null && skip) {
             listener.getLogger().println("Publish built packages via Aptly - Skipping... ");
             return true;
@@ -139,7 +140,6 @@ public class AptlyPublisher extends Notifier {
         }
 
         AptlySite aptlysite = null;
-        try {
             aptlysite = getSite();
             listener.getLogger().println("Using aptly site: " + aptlysite.getHostname());
             listener.getLogger().println("Port " + aptlysite.getPort());
@@ -151,20 +151,30 @@ public class AptlyPublisher extends Notifier {
                                 Integer.parseInt(aptlysite.getPort()), aptlysite.getTimeOut(),
                                 aptlysite.getUsername(), aptlysite.getPassword());
 
+        try {
             String result = client.getAptlyServerVersion();
             listener.getLogger().println("Version result " +  result);
-            // ################### UPLOAD THE FILES ############################
-            List<String> filelist = new ArrayList<String>();
-            client.uploadFiles(filelist);
-
         } catch (Throwable th) {
             th.printStackTrace(listener.error("Failed to upload files"));
             build.setResult(Result.UNSTABLE);
-        } finally {
-            if (aptlysite != null) {
-                //ftpsite.closeSession();
-            }
         }
+
+        List <PackageItem> itemlist = getPackageItems();
+        for (PackageItem i : itemlist) {
+            // ################### UPLOAD THE FILES ############################
+            try {
+                List<String> filelist = i.getSourceFileList(workspacedir);
+                //client.uploadFiles(i.getSourceFileList(workspacedir));
+            } catch (Throwable th) {
+                th.printStackTrace(listener.error("Failed to upload files"));
+                build.setResult(Result.UNSTABLE);
+            }
+
+            // ################### ADD THE PACKAGES TO THE REPO  ###############
+            //
+            // ################### UPDATE THE PUBLISHED REPO ###################
+        }
+
 
         return true;
     }
