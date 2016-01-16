@@ -1,0 +1,18 @@
+Release 1.0.0
+
+* use Creditentials instead of own user/password management
+* use talking name for the upload dir
+* more error handling/logging
+* use bindJSONToList instead of the deprecated bindParametersToList
+* fill help texts
+* l10n texts [DE, ?]
+* add tests
+* extend logging into the build log
+
+
+Release 2.0.0
+* package/repo signing
+* creating repo if doesn't exist??
+
+
+

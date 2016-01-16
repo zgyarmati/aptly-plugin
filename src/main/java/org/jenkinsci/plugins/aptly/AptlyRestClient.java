@@ -72,7 +72,6 @@ public class AptlyRestClient {
     public String getAptlyServerVersion() throws AptlyRestException {
         String retval = "";
         try {
-            // http://localhost:1080/api/version
             GetRequest req = Unirest.get("http://" + hostname + ":" + portnum +
                                          "/api/version");
             req = req.header("accept", "application/json");
@@ -140,7 +139,6 @@ public class AptlyRestClient {
                 req = req.basicAuth(username, password);
             }
             HttpResponse<JsonNode> jsonResponse = req.body("{\"Signing\":{\"Skip\": true }}").asJson();
-            //HttpResponse<JsonNode> jsonResponse = req.field("Snapshots", "").asJson();
             System.console().printf("Response code: <%d>, body <%s>\n",
                     jsonResponse.getStatus(), jsonResponse.getBody().toString());
         } catch (UnirestException ex) {

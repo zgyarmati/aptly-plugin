@@ -80,7 +80,6 @@ public class AptlyPublisher extends Notifier {
     */
     public AptlyPublisher(String repoSiteName) {
         this.repoSiteName = repoSiteName;
-//        String workspacedir = build.getWorkspace().toURI().normalize().toString();
     }
 
     public void setSkip(boolean skip) {
@@ -97,20 +96,20 @@ public class AptlyPublisher extends Notifier {
 
 
     public String getRepoSiteName() {
-		String repositename = repoSiteName;
-		if (repositename == null) {
-		    AptlySite[] sites = DESCRIPTOR.getSites();
-			if (sites.length > 0) {
-				repositename = sites[0].getName();
-			}
-		}
+        String repositename = repoSiteName;
+        if (repositename == null) {
+            AptlySite[] sites = DESCRIPTOR.getSites();
+            if (sites.length > 0) {
+                repositename = sites[0].getName();
+            }
+        }
         System.console().printf(">>> getSiteName ret: %s\n", repositename);
-		return repositename;
-	}
+        return repositename;
+    }
 
-	public void setRepoSiteName(String repoSiteName) {
-		this.repoSiteName = repoSiteName;
-	}
+    public void setRepoSiteName(String repoSiteName) {
+        this.repoSiteName = repoSiteName;
+    }
 
     /**
     * This method returns the configured AptlySite object which match the repoSiteName.
@@ -137,20 +136,20 @@ public class AptlyPublisher extends Notifier {
         return BuildStepMonitor.BUILD;
     }
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @param build
-	 * @param launcher
-	 * @param listener
-	 * @return
-	 * @throws InterruptedException
-	 * @throws IOException
-	 *           {@inheritDoc}
-	 * @see hudson.tasks.BuildStep#perform(hudson.model.Build, hudson.Launcher, hudson.model.BuildListener)
-	 */
-	@Override
-	public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+   /**
+    * {@inheritDoc}
+    *
+    * @param build
+    * @param launcher
+    * @param listener
+    * @return
+    * @throws InterruptedException
+    * @throws IOException
+    *           {@inheritDoc}
+    * @see hudson.tasks.BuildStep#perform(hudson.model.Build, hudson.Launcher, hudson.model.BuildListener)
+    */
+    @Override
+    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
 
         listener.getLogger().println("Perform AptlyPublisher ");
         if (skip != null && skip) {
@@ -203,7 +202,6 @@ public class AptlyPublisher extends Notifier {
                  build.setResult(Result.UNSTABLE);
                  return false;
             }
-            //
             //copy the remote file into the local dir, collect all of the
             // filepaths into 'filelist', and pass the list for uploading
             ArrayIterator filesiterator = new ArrayIterator(remoteFiles);

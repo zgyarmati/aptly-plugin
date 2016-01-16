@@ -58,7 +58,6 @@ public class PackageItem implements Describable<PackageItem>, Serializable {
         this.repositoryName = repositoryName;
         this.distributionName = distributionName;
         this.sourceFiles = sourceFiles;
-        //this.sourceFiles = Arrays.asList(sourceFiles.split("\\s*,\\s*"));
     }
 
     /**
@@ -66,12 +65,10 @@ public class PackageItem implements Describable<PackageItem>, Serializable {
      * @return the comma-separated list as String
      */
     public String getSourceFiles() {
-        System.console().printf("##### getSourceFiles %s\n\n", sourceFiles);
         return sourceFiles;
     }
 
     public String getRepositoryName(){
-        System.console().printf("##### getRepositoryName %s\n\n", repositoryName);
         return repositoryName;
     }
 
