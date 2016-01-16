@@ -14,16 +14,21 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.util.CopyOnWriteList;
 import hudson.util.FormValidation;
+import hudson.FilePath;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.io.File;
+import org.apache.commons.io.FileUtils;
 
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.StaplerRequest;
+import org.apache.commons.collections.iterators.ArrayIterator;
 
 /**
  * This class implements the Aptly publisher, takes care of orchestring the
@@ -54,6 +59,7 @@ public class AptlyPublisher extends Notifier {
     */
     public AptlyPublisher(String repoSiteName) {
         this.repoSiteName = repoSiteName;
+//        String workspacedir = build.getWorkspace().toURI().normalize().toString();
     }
 
     public void setSkip(boolean skip) {
@@ -65,8 +71,6 @@ public class AptlyPublisher extends Notifier {
     }
 
     public List<PackageItem> getPackageItems(){
-        System.console().printf(">>>>>> getPackageItems %d\n", this.packageItems.size());
-//        System.console().printf(">>>>>> getPackageItems %s\n", this.packageItems.get(0).getSourceFiles());
         return this.packageItems;
     }
 
@@ -128,16 +132,17 @@ public class AptlyPublisher extends Notifier {
 	public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
 
         listener.getLogger().println("Perform AptlyPublisher ");
-        String workspacedir = build.getWorkspace().toURI().normalize().toString();
         if (skip != null && skip) {
             listener.getLogger().println("Publish built packages via Aptly - Skipping... ");
             return true;
         }
 
         if (build.getResult() == Result.FAILURE || build.getResult() == Result.ABORTED) {
-            // build failed. don't post
+            // build failed
             return true;
         }
+
+        Map<String, String> envVars  = build.getEnvironment(listener);
 
         AptlySite aptlysite = null;
             aptlysite = getSite();
@@ -155,29 +160,81 @@ public class AptlyPublisher extends Notifier {
             String result = client.getAptlyServerVersion();
             listener.getLogger().println("Version result " +  result);
         } catch (Throwable th) {
-            th.printStackTrace(listener.error("Failed to upload files"));
+            th.printStackTrace(listener.error("Failed to connect to the server"));
             build.setResult(Result.UNSTABLE);
         }
-
         List <PackageItem> itemlist = getPackageItems();
         for (PackageItem i : itemlist) {
-            // ################### UPLOAD THE FILES ############################
+            String uuid = null;
+            // Creating a temp dir for copying the remote files
+            File tempDir = File.createTempFile("aptlyplugin", null);
+            tempDir.delete();
+            tempDir.mkdirs();
+
+            FilePath workspace = new FilePath(launcher.getChannel(), build.getWorkspace().getRemote());
+            //expand the macros like ${BUILD_NUM}
+            String expanded = Util.replaceMacro(i.getSourceFiles(), envVars);
+            //expand the file globs
+            FilePath[] remoteFiles = workspace.list(expanded);
+            if (remoteFiles.length == 0) {
+                 listener.getLogger().println("No matching file found to upload in: " + expanded);
+                 System.console().printf("No matching file found to upload in: %s\n", expanded);
+                 build.setResult(Result.UNSTABLE);
+                 return false;
+            }
+            //
+            //copy the remote file into the local dir, collect all of the
+            // filepaths into 'filelist', and pass the list for uploading
+            ArrayIterator filesiterator = new ArrayIterator(remoteFiles);
+            List<File>  filelist = new ArrayList<File>();
+            while (filesiterator.hasNext()) {
+                FilePath filepath = (FilePath) filesiterator.next();
+                if(filepath.isRemote()) {
+                    FilePath localfilepath = new FilePath(new FilePath(tempDir), filepath.getName());
+                    filepath.copyTo(localfilepath);
+                    filepath = localfilepath;
+                }
+                File file = new File(filepath.toURI());
+                listener.getLogger().println(file);
+                System.console().printf("Found file to upload: %s\n", file.toString());
+                //this is already ensured to be a local and absoulute path
+                filelist.add(file);
+            }
             try {
-                List<String> filelist = i.getSourceFileList(workspacedir);
-                //client.uploadFiles(i.getSourceFileList(workspacedir));
+                uuid = client.uploadFiles(filelist);
+            } catch (Throwable th) {
+                th.printStackTrace(listener.error("Failed to upload files"));
+                build.setResult(Result.UNSTABLE);
+            } finally {
+                try {
+                    FileUtils.deleteDirectory(tempDir);
+                } catch (IOException e) {
+                    try {
+                        FileUtils.forceDeleteOnExit(tempDir);
+                    } catch (IOException e1) {
+                        e1.printStackTrace(listener.getLogger());
+                    }
+                }
+            }
+
+            // ################### ADD THE PACKAGES TO THE REPO  ###############
+            try {
+                client.addUploadedFilesToRepo(i.getRepositoryName(), uuid);
             } catch (Throwable th) {
                 th.printStackTrace(listener.error("Failed to upload files"));
                 build.setResult(Result.UNSTABLE);
             }
 
-            // ################### ADD THE PACKAGES TO THE REPO  ###############
-            //
             // ################### UPDATE THE PUBLISHED REPO ###################
-        }
-
-
-        return true;
+            try {
+                client.updatePublishRepo(i.getDistributionName());
+            } catch (Throwable th) {
+                th.printStackTrace(listener.error("Failed to upload files"));
+                build.setResult(Result.UNSTABLE);
+            }
     }
+    return true;
+}
 
     /**
     * This class holds the metadata for the AptlyPublisher.

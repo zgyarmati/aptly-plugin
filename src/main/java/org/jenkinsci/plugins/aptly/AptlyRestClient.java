@@ -7,6 +7,7 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.request.GetRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
+import com.mashape.unirest.request.body.MultipartBody;
 
 import org.apache.commons.lang.StringUtils;
 import java.io.PrintStream;
@@ -65,8 +66,8 @@ public class AptlyRestClient {
         return retval;
     }
 
-    public String uploadFiles(List<String> filepaths) throws AptlyRestException {
-        //used to distinguish the upload dir
+    public String uploadFiles(List<File> filepaths) throws AptlyRestException {
+        //used to distinguish the upload dir on the aptly server
         String uuid = UUID.randomUUID().toString();
         System.out.println("upload dir name UUID = " + uuid);
         try {
@@ -76,9 +77,9 @@ public class AptlyRestClient {
             if( username != null && !username.isEmpty()){
                 req = req.basicAuth(username, password);
             }
-
-            HttpResponse<JsonNode> jsonResponse = req.field("file", new File("/tmp/smarttimetable-webgui_0.5.41_all.deb")).asJson();
-            System.console().printf("Response: " + jsonResponse.getBody().toString() + "\n");
+            HttpResponse<JsonNode> jsonResponse = req.field("file", filepaths).asJson();
+            System.console().printf("Response code: <%d>, body <%s>\n",
+                    jsonResponse.getStatus(), jsonResponse.getBody().toString());
         } catch (UnirestException ex) {
             System.console().printf("Failed to upload the packages: %s\n", ex.toString());
             throw new AptlyRestException(ex.toString());
@@ -97,7 +98,8 @@ public class AptlyRestClient {
             }
 
             HttpResponse<JsonNode> jsonResponse = req.asJson();
-            System.console().printf("Response: " + jsonResponse.getBody().toString() + "\n");
+            System.console().printf("Response code: <%d>, body <%s>\n",
+                    jsonResponse.getStatus(), jsonResponse.getBody().toString());
         } catch (UnirestException ex) {
             System.console().printf("Failed to add uploaded packages to repo: %s\n", ex.toString());
             throw new AptlyRestException(ex.toString());
@@ -105,10 +107,10 @@ public class AptlyRestClient {
     }
 
     // update published repo
-    public void updatePublishRepo(String reponame, String distribution) throws AptlyRestException {
+    public void updatePublishRepo(String distribution) throws AptlyRestException {
         try {
             HttpRequestWithBody req = Unirest.put("http://" + hostname + ":" + portnum +
-                                         "/api/publish//jessie");
+                                         "/api/publish//" + distribution);
             req = req.header("accept", "application/json");
             req = req.header("Content-Type", "application/json");
             if( username != null && !username.isEmpty()){
@@ -116,9 +118,10 @@ public class AptlyRestClient {
             }
             HttpResponse<JsonNode> jsonResponse = req.body("{\"Signing\":{\"Skip\": true }}").asJson();
             //HttpResponse<JsonNode> jsonResponse = req.field("Snapshots", "").asJson();
-            System.console().printf("Response: " + jsonResponse.getBody().toString() + "\n");
+            System.console().printf("Response code: <%d>, body <%s>\n",
+                    jsonResponse.getStatus(), jsonResponse.getBody().toString());
         } catch (UnirestException ex) {
-            System.console().printf("Failed to add uploaded packages to repo: %s\n", ex.toString());
+            System.console().printf("Failed to publish repo: %s\n", ex.toString());
             throw new AptlyRestException(ex.toString());
         }
     }

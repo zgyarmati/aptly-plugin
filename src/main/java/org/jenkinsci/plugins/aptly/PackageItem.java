@@ -69,15 +69,6 @@ public class PackageItem implements Describable<PackageItem>, Serializable {
         return sourceFiles;
     }
 
-    public List<String> getSourceFileList(String basepath){
-
-        List<String> filenamelist = Arrays.asList(sourceFiles.split("\\s*,\\s*"));
-        for (ListIterator i = filenamelist.listIterator(); i.hasNext();){
-            i.set(basepath + "/" + i.next());
-        }
-        return filenamelist;
-    }
-
     public String getRepositoryName(){
         System.console().printf("##### getRepositoryName %s\n\n", repositoryName);
         return repositoryName;
