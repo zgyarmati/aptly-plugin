@@ -46,6 +46,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.io.File;
+import java.util.UUID;
 import org.apache.commons.io.FileUtils;
 
 import net.sf.json.JSONObject;
@@ -185,7 +186,9 @@ public class AptlyPublisher extends Notifier {
         }
         List <PackageItem> itemlist = getPackageItems();
         for (PackageItem i : itemlist) {
-            String uuid = null;
+            String uploaddirid = envVars.get("JOB_NAME") + "-" +
+                                 envVars.get("BUILD_NUMBER") + "-" +
+                                 UUID.randomUUID().toString().substring(0,6);
             // Creating a temp dir for copying the remote files
             File tempDir = File.createTempFile("aptlyplugin", null);
             tempDir.delete();
@@ -220,7 +223,7 @@ public class AptlyPublisher extends Notifier {
                 filelist.add(file);
             }
             try {
-                uuid = client.uploadFiles(filelist);
+                client.uploadFiles(filelist, uploaddirid);
             } catch (Throwable th) {
                 th.printStackTrace(listener.error("Failed to upload files"));
                 build.setResult(Result.UNSTABLE);
@@ -238,7 +241,7 @@ public class AptlyPublisher extends Notifier {
 
             // ################### ADD THE PACKAGES TO THE REPO  ###############
             try {
-                client.addUploadedFilesToRepo(i.getRepositoryName(), uuid);
+                client.addUploadedFilesToRepo(i.getRepositoryName(), uploaddirid);
             } catch (Throwable th) {
                 th.printStackTrace(listener.error("Failed to upload files"));
                 build.setResult(Result.UNSTABLE);

@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.io.Console;
 import java.util.List;
 import java.io.File;
-import java.util.UUID;
 
 
 
@@ -88,13 +87,11 @@ public class AptlyRestClient {
         return retval;
     }
 
-    public String uploadFiles(List<File> filepaths) throws AptlyRestException {
-        //used to distinguish the upload dir on the aptly server
-        String uuid = UUID.randomUUID().toString();
-        System.out.println("upload dir name UUID = " + uuid);
+    public void uploadFiles(List<File> filepaths, String uploaddir) throws AptlyRestException {
+        System.out.println("upload dir name: " + uploaddir);
         try {
             HttpRequestWithBody req = Unirest.post("http://" + hostname + ":" + portnum +
-                                         "/api/files/" + uuid);
+                                         "/api/files/" + uploaddir);
             req = req.header("accept", "application/json");
             if( username != null && !username.isEmpty()){
                 req = req.basicAuth(username, password);
@@ -106,7 +103,6 @@ public class AptlyRestClient {
             System.console().printf("Failed to upload the packages: %s\n", ex.toString());
             throw new AptlyRestException(ex.toString());
         }
-        return uuid;
     }
 
     public void addUploadedFilesToRepo(String reponame, String uploaddir) throws AptlyRestException {
