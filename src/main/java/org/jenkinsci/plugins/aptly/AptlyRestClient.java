@@ -58,14 +58,16 @@ public class AptlyRestClient {
     private int timeout;
     private String username;
     private String password;
+    private PrintStream logger;
 
-    public AptlyRestClient(String hostname, int portnum, int timeout,
-                          String username, String password ){
+    public AptlyRestClient(PrintStream logger, String hostname, int portnum,
+                            int timeout, String username, String password ){
         this.hostname = hostname;
         this.portnum  = portnum;
         this.timeout  = timeout;
         this.username = username;
         this.password = password;
+        this.logger = logger;
     }
 
     public String getAptlyServerVersion() throws AptlyRestException {
@@ -76,19 +78,19 @@ public class AptlyRestClient {
             req = req.header("accept", "application/json");
             HttpResponse<JsonNode> jsonResponse = req.asJson();
 
-            System.console().printf("Response: " + jsonResponse.getBody().toString() + "\n");
+            logger.println("Response: " + jsonResponse.getBody().toString());
             retval = jsonResponse.getBody().getObject().getString("Version");
-            System.console().printf("Version: " + retval + "\n");
+            logger.println("Version: " + retval + "\n");
 
         } catch (UnirestException ex) {
-            System.console().printf("Failed to get version: %s\n", ex.toString());
+            logger.println("Failed to get version: " + ex.toString());
             throw new AptlyRestException(ex.toString());
         }
         return retval;
     }
 
     public void uploadFiles(List<File> filepaths, String uploaddir) throws AptlyRestException {
-        System.out.println("upload dir name: " + uploaddir);
+        logger.println("upload dir name: " + uploaddir);
         try {
             HttpRequestWithBody req = Unirest.post("http://" + hostname + ":" + portnum +
                                          "/api/files/" + uploaddir);
@@ -97,10 +99,10 @@ public class AptlyRestClient {
                 req = req.basicAuth(username, password);
             }
             HttpResponse<JsonNode> jsonResponse = req.field("file", filepaths).asJson();
-            System.console().printf("Response code: <%d>, body <%s>\n",
+            logger.printf("Response code: <%d>, body <%s>\n",
                     jsonResponse.getStatus(), jsonResponse.getBody().toString());
         } catch (UnirestException ex) {
-            System.console().printf("Failed to upload the packages: %s\n", ex.toString());
+            logger.printf("Failed to upload the packages: %s\n", ex.toString());
             throw new AptlyRestException(ex.toString());
         }
     }
@@ -116,10 +118,10 @@ public class AptlyRestClient {
             }
 
             HttpResponse<JsonNode> jsonResponse = req.asJson();
-            System.console().printf("Response code: <%d>, body <%s>\n",
+            logger.printf("Response code: <%d>, body <%s>\n",
                     jsonResponse.getStatus(), jsonResponse.getBody().toString());
         } catch (UnirestException ex) {
-            System.console().printf("Failed to add uploaded packages to repo: %s\n", ex.toString());
+            logger.printf("Failed to add uploaded packages to repo: %s\n", ex.toString());
             throw new AptlyRestException(ex.toString());
         }
     }
@@ -135,10 +137,10 @@ public class AptlyRestClient {
                 req = req.basicAuth(username, password);
             }
             HttpResponse<JsonNode> jsonResponse = req.body("{\"Signing\":{\"Skip\": true }}").asJson();
-            System.console().printf("Response code: <%d>, body <%s>\n",
+            logger.printf("Response code: <%d>, body <%s>\n",
                     jsonResponse.getStatus(), jsonResponse.getBody().toString());
         } catch (UnirestException ex) {
-            System.console().printf("Failed to publish repo: %s\n", ex.toString());
+            logger.printf("Failed to publish repo: " + ex.toString());
             throw new AptlyRestException(ex.toString());
         }
     }

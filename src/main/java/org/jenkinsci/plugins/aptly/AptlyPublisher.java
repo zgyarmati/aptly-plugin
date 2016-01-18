@@ -60,7 +60,7 @@ import org.apache.commons.collections.iterators.ArrayIterator;
  * @author $Author: zgyarmati <mr.zoltan.gyarmati@gmail.com>
  */
 public class AptlyPublisher extends Notifier {
-
+//     private static final Logger logger = Logger.getLogger("jenkins.AptlyPublisher");
 	/**
 	 * Hold an instance of the Descriptor implementation of this publisher.
 	 */
@@ -104,7 +104,6 @@ public class AptlyPublisher extends Notifier {
                 repositename = sites[0].getName();
             }
         }
-        System.console().printf(">>> getSiteName ret: %s\n", repositename);
         return repositename;
     }
 
@@ -173,7 +172,7 @@ public class AptlyPublisher extends Notifier {
             listener.getLogger().println("Password " + aptlysite.getPassword());
             listener.getLogger().println("Timeout " + aptlysite.getTimeOut());
 
-            AptlyRestClient client = new AptlyRestClient(aptlysite.getHostname(),
+            AptlyRestClient client = new AptlyRestClient(listener.getLogger(),aptlysite.getHostname(),
                                 Integer.parseInt(aptlysite.getPort()), aptlysite.getTimeOut(),
                                 aptlysite.getUsername(), aptlysite.getPassword());
 
@@ -201,7 +200,6 @@ public class AptlyPublisher extends Notifier {
             FilePath[] remoteFiles = workspace.list(expanded);
             if (remoteFiles.length == 0) {
                  listener.getLogger().println("No matching file found to upload in: " + expanded);
-                 System.console().printf("No matching file found to upload in: %s\n", expanded);
                  build.setResult(Result.UNSTABLE);
                  return false;
             }
@@ -217,8 +215,7 @@ public class AptlyPublisher extends Notifier {
                     filepath = localfilepath;
                 }
                 File file = new File(filepath.toURI());
-                listener.getLogger().println(file);
-                System.console().printf("Found file to upload: %s\n", file.toString());
+                listener.getLogger().println("Found file to upload: " + file.toString());
                 //this is already ensured to be a local and absoulute path
                 filelist.add(file);
             }
@@ -319,7 +316,6 @@ public class AptlyPublisher extends Notifier {
         */
         @Override
         public Publisher newInstance(StaplerRequest req, JSONObject formData) {
-            System.console().printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@ SYSTEMCONSOLPRINTF");
             AptlyPublisher pub = new AptlyPublisher();
             req.bindParameters(pub, "publisher.");
             req.bindParameters(pub, "aptly.");
@@ -381,8 +377,6 @@ public class AptlyPublisher extends Notifier {
             }
             AptlySite site = new AptlySite(hostname, request.getParameter("port"), request.getParameter("timeOut"), request.getParameter("user"),
                 request.getParameter("pass"));
-                System.console().printf(">>>>>>>>> doLoginCheck() port: %s\n ",
-                request.getParameter("port"));
             try {
                 //site.createSession();
                 //site.closeSession();

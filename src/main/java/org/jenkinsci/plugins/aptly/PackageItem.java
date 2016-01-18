@@ -54,7 +54,6 @@ public class PackageItem implements Describable<PackageItem>, Serializable {
     public PackageItem(String sourceFiles,
                        String distributionName,
                        String repositoryName) {
-        System.console().printf("###### PackageItem constructor\n\n");
         this.repositoryName = repositoryName;
         this.distributionName = distributionName;
         this.sourceFiles = sourceFiles;
