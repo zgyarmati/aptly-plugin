@@ -182,6 +182,7 @@ public class AptlyPublisher extends Notifier {
         } catch (Throwable th) {
             th.printStackTrace(listener.error("Failed to connect to the server"));
             build.setResult(Result.UNSTABLE);
+            return false;
         }
         List <PackageItem> itemlist = getPackageItems();
         for (PackageItem i : itemlist) {
@@ -242,6 +243,7 @@ public class AptlyPublisher extends Notifier {
             } catch (Throwable th) {
                 th.printStackTrace(listener.error("Failed to upload files"));
                 build.setResult(Result.UNSTABLE);
+                return false;
             }
 
             // ################### UPDATE THE PUBLISHED REPO ###################
@@ -250,6 +252,7 @@ public class AptlyPublisher extends Notifier {
             } catch (Throwable th) {
                 th.printStackTrace(listener.error("Failed to upload files"));
                 build.setResult(Result.UNSTABLE);
+                return false;
             }
     }
     return true;
