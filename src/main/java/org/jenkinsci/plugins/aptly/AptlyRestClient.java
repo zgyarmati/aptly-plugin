@@ -117,7 +117,7 @@ public class AptlyRestClient {
                 req = req.basicAuth(username, password);
             }
 
-            HttpResponse<JsonNode> jsonResponse = req.asJson();
+            HttpResponse<JsonNode> jsonResponse = req.queryString("forceReplace", "1").asJson();
             logger.printf("Response code: <%d>, body <%s>\n",
                     jsonResponse.getStatus(), jsonResponse.getBody().toString());
         } catch (UnirestException ex) {
@@ -136,7 +136,7 @@ public class AptlyRestClient {
             if( username != null && !username.isEmpty()){
                 req = req.basicAuth(username, password);
             }
-            HttpResponse<JsonNode> jsonResponse = req.body("{\"Signing\":{\"Skip\": true }}").asJson();
+            HttpResponse<JsonNode> jsonResponse = req.body("{\"Signing\":{\"Skip\": true } , \"ForceOverwrite\" : true}").asJson();
             logger.printf("Response code: <%d>, body <%s>\n",
                     jsonResponse.getStatus(), jsonResponse.getBody().toString());
         } catch (UnirestException ex) {
