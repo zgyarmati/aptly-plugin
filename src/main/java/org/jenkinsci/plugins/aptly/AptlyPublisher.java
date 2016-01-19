@@ -248,7 +248,7 @@ public class AptlyPublisher extends Notifier {
 
             // ################### UPDATE THE PUBLISHED REPO ###################
             try {
-                client.updatePublishRepo(i.getDistributionName());
+                client.updatePublishRepo(i.getPrefixName(),i.getDistributionName());
             } catch (Throwable th) {
                 th.printStackTrace(listener.error("Failed to upload files"));
                 build.setResult(Result.UNSTABLE);

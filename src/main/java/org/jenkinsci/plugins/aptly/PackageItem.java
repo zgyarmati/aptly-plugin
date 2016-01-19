@@ -45,6 +45,7 @@ public class PackageItem implements Describable<PackageItem>, Serializable {
     private String sourceFiles;
     private String repositoryName;
     private String distributionName;
+    private String prefixName;
 
     /**
      * Constructor
@@ -53,10 +54,12 @@ public class PackageItem implements Describable<PackageItem>, Serializable {
     @DataBoundConstructor
     public PackageItem(String sourceFiles,
                        String distributionName,
-                       String repositoryName) {
+                       String repositoryName,
+                       String prefixName) {
         this.repositoryName = repositoryName;
         this.distributionName = distributionName;
         this.sourceFiles = sourceFiles;
+        this.prefixName = prefixName;
     }
 
     /**
@@ -71,12 +74,16 @@ public class PackageItem implements Describable<PackageItem>, Serializable {
         return repositoryName;
     }
 
+    public String getPrefixName(){
+        return prefixName;
+    }
+
     public void setSourceFiles(String sourceFiles) {
         this.sourceFiles = sourceFiles;
     }
 
-    public void setRepositoryName(String repositoryName) {
-        this.repositoryName = repositoryName;
+    public void setPrefixName(String repositoryName) {
+        this.prefixName = prefixName;
     }
 
     public void setDistributionName(String distributionName) {

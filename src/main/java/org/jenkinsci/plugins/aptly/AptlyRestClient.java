@@ -127,10 +127,10 @@ public class AptlyRestClient {
     }
 
     // update published repo
-    public void updatePublishRepo(String distribution) throws AptlyRestException {
+    public void updatePublishRepo(String prefix, String distribution) throws AptlyRestException {
         try {
             HttpRequestWithBody req = Unirest.put("http://" + hostname + ":" + portnum +
-                                         "/api/publish//" + distribution);
+                                         "/api/publish/" + prefix + "/" + distribution);
             req = req.header("accept", "application/json");
             req = req.header("Content-Type", "application/json");
             if( username != null && !username.isEmpty()){

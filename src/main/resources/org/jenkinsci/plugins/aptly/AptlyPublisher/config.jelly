@@ -16,11 +16,12 @@
         <f:entry title="Repository" field="repositoryName">
           <input class="setting-input" name="aptly.entry.repositoryName" type="text" value="${e.repositoryName}"/>
         </f:entry>
-
         <f:entry title="Distribution" field="distributionName">
           <input class="setting-input" name="aptly.entry.distributionName" type="text" value="${e.distributionName}"/>
         </f:entry>
-
+        <f:entry title="Prefix" field="prefixName">
+          <input class="setting-input" name="aptly.entry.prefixName" type="text" value="${e.prefixName}"/>
+        </f:entry>
         <f:entry title="Sources" field="sourceFiles">
           <input class="setting-input" name="aptly.entry.sourceFiles" type="text" value="${e.sourceFiles}"/>
         </f:entry>
