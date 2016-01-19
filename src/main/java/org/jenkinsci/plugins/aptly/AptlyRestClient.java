@@ -78,9 +78,10 @@ public class AptlyRestClient {
             req = req.header("accept", "application/json");
             HttpResponse<JsonNode> jsonResponse = req.asJson();
 
-            logger.println("Response: " + jsonResponse.getBody().toString());
             retval = jsonResponse.getBody().getObject().getString("Version");
-            logger.println("Version: " + retval + "\n");
+            if (jsonResponse.getStatus() != 200){
+                throw new AptlyRestException(jsonResponse.getBody().toString());
+            }
 
         } catch (UnirestException ex) {
             logger.println("Failed to get version: " + ex.toString());
@@ -101,6 +102,9 @@ public class AptlyRestClient {
             HttpResponse<JsonNode> jsonResponse = req.field("file", filepaths).asJson();
             logger.printf("Response code: <%d>, body <%s>\n",
                     jsonResponse.getStatus(), jsonResponse.getBody().toString());
+            if (jsonResponse.getStatus() != 200){
+                throw new AptlyRestException(jsonResponse.getBody().toString());
+            }
         } catch (UnirestException ex) {
             logger.printf("Failed to upload the packages: %s\n", ex.toString());
             throw new AptlyRestException(ex.toString());
@@ -120,6 +124,9 @@ public class AptlyRestClient {
             HttpResponse<JsonNode> jsonResponse = req.queryString("forceReplace", "1").asJson();
             logger.printf("Response code: <%d>, body <%s>\n",
                     jsonResponse.getStatus(), jsonResponse.getBody().toString());
+            if (jsonResponse.getStatus() != 200){
+                throw new AptlyRestException(jsonResponse.getBody().toString());
+            }
         } catch (UnirestException ex) {
             logger.printf("Failed to add uploaded packages to repo: %s\n", ex.toString());
             throw new AptlyRestException(ex.toString());
@@ -139,6 +146,9 @@ public class AptlyRestClient {
             HttpResponse<JsonNode> jsonResponse = req.body("{\"Signing\":{\"Skip\": true } , \"ForceOverwrite\" : true}").asJson();
             logger.printf("Response code: <%d>, body <%s>\n",
                     jsonResponse.getStatus(), jsonResponse.getBody().toString());
+            if (jsonResponse.getStatus() != 200){
+                throw new AptlyRestException(jsonResponse.getBody().toString());
+            }
         } catch (UnirestException ex) {
             logger.printf("Failed to publish repo: " + ex.toString());
             throw new AptlyRestException(ex.toString());
