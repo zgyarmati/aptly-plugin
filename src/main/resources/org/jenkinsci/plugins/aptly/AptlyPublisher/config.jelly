@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <f:entry title="Skip publishing (e.g. temporarily)">
+  <f:entry title="Skip publishing (e.g. temporarily)" field="skipPublish">
     <f:checkbox name="publisher.skip" checked="${instance.skip}"/>
   </f:entry>
   <f:entry title="Aptly site" field="repoSiteName">
