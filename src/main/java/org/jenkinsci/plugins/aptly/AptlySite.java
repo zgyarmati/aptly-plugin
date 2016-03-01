@@ -37,6 +37,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.kohsuke.stapler.DataBoundConstructor;
 /**
  * This class represents an Aptly site's connection and authentication details
  * @author $Author: zgyarmati <mr.zoltan.gyarmati@gmail.com>
@@ -88,6 +89,7 @@ public class AptlySite {
     * @param password
     *          the password
     */
+    @DataBoundConstructor
     public AptlySite(String profileName, String hostname, int port, int timeOut, String username, String password) {
         this.profileName = profileName;
         this.hostname = hostname;

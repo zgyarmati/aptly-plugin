@@ -1,9 +1,7 @@
 Release 1.0.0
 
-* use Creditentials instead of own user/password management
 * use talking name for the upload dir  [DONE]
 * more error handling/logging
-* use bindJSONToList instead of the deprecated bindParametersToList
 * fill help texts
 * l10n texts [DE, ?]
 * add tests

@@ -319,20 +319,22 @@ public class AptlyPublisher extends Notifier {
         */
         @Override
         public Publisher newInstance(StaplerRequest req, JSONObject formData) {
-            AptlyPublisher pub = new AptlyPublisher();
-            req.bindParameters(pub, "publisher.");
-            req.bindParameters(pub, "aptly.");
-            pub.getPackageItems().addAll(req.bindParametersToList(PackageItem.class, "aptly.entry."));
-//            JSONObject data;
-//            try {
-//                data = req.getSubmittedForm();
-//            } catch (Exception e) {
-//                System.console().printf(">>>>>>>>> getSubmittedForm Exception: " + e.getMessage() + "\n");
-//                return null;
-//            }
-//            List<PackageItem> entries = req.bindJSONToList(PackageItem.class, data.getJSONObject("publisher").get("items"));
-////            pub.getPackageItems().addAll(entries);
-            return pub;
+           AptlyPublisher pub = new AptlyPublisher();
+           JSONObject data;
+           try {
+               data = req.getSubmittedForm();
+           } catch (Exception e) {
+               System.console().printf(">> getSubmittedForm Exception: " + e.getMessage() + "\n");
+               return null;
+           }
+           try {
+                List<PackageItem> entries = req.bindJSONToList(PackageItem.class, data.getJSONObject("publisher").get("packageItems"));
+                pub.getPackageItems().addAll(entries);
+           } catch (Exception e) {
+               System.console().printf(">> bindJSONToList Exception: " + e.getMessage() + "\n");
+               return null;
+           }
+           return pub;
         }
 
 
@@ -361,14 +363,17 @@ public class AptlyPublisher extends Notifier {
         */
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) {
-            sites.replaceBy(req.bindParametersToList(AptlySite.class, "aptly."));
-            packageItems.replaceBy(req.bindParametersToList(PackageItem.class, "aptly.entry."));
+            System.console().printf(">> configure() <<<<<< \n");
+            System.console().printf("FORMDATA: " + formData.toString()  +"\n");
+            List<AptlySite> asites = req.bindJSONToList(AptlySite.class,
+                                        formData.get("site"));
+            sites.replaceBy(asites);
             save();
             return true;
         }
 
         /**
-        * This method validates the current entered Aptly site configuration data. 
+        * This method validates the current entered Aptly site configuration data.
         *
         * @param request
         *          the current {@link javax.servlet.http.HttpServletRequest}
@@ -378,16 +383,13 @@ public class AptlyPublisher extends Notifier {
             if (hostname == null) { // hosts is not entered yet
                 return FormValidation.ok();
             }
-            AptlySite site = new AptlySite(hostname, request.getParameter("port"), request.getParameter("timeOut"), request.getParameter("user"),
-                request.getParameter("pass"));
             try {
-                //site.createSession();
-                //site.closeSession();
-
-                return FormValidation.ok();
+                AptlySite site = new AptlySite(hostname, request.getParameter("port"), request.getParameter("timeOut"), request.getParameter("user"),
+                request.getParameter("pass"));
             } catch (Exception e) {
                 return FormValidation.error(e.getMessage());
             }
+            return FormValidation.ok();
         }
     }
 }

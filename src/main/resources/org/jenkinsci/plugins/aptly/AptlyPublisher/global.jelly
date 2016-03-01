@@ -11,11 +11,9 @@
           <f:entry title="hostname" field="hostname">
             <f:textbox name="aptly.hostname" value="${site.hostname}"/>
           </f:entry>
-
           <f:entry title="Port" field="port">
             <f:textbox name="aptly.port" value="${site.port}"/>
           </f:entry>
-
           <f:entry title="TimeOut" field="timeout">
             <f:textbox name="aptly.timeOut" value="${site.timeOut}"/>
           </f:entry>

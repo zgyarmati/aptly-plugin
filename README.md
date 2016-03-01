@@ -37,6 +37,7 @@ aptly publish update jessie
 ## Jenkins plugin setup
 mvn -U org.jenkins-ci.tools:maven-hpi-plugin:create
 
+mvnDebug hpi:run
 
 ## Notes
 ### Bookmarks
