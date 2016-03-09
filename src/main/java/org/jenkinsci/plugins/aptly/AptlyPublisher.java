@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.io.File;
 import java.util.UUID;
+import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 
 import net.sf.json.JSONObject;
@@ -70,6 +71,7 @@ public class AptlyPublisher extends Notifier {
     private String repoSiteName;
     private final List<PackageItem> packageItems = new ArrayList<PackageItem>();
     private Boolean skip = false;
+    private final static Logger LOG = Logger.getLogger(AptlyPublisher.class.getName());
 
     public AptlyPublisher() { }
 
@@ -169,7 +171,6 @@ public class AptlyPublisher extends Notifier {
             listener.getLogger().println("Using aptly site: " + aptlysite.getHostname());
             listener.getLogger().println("Port " + aptlysite.getPort());
             listener.getLogger().println("Username " + aptlysite.getUsername());
-            listener.getLogger().println("Password " + aptlysite.getPassword());
             listener.getLogger().println("Timeout " + aptlysite.getTimeOut());
 
             AptlyRestClient client = new AptlyRestClient(listener.getLogger(),aptlysite.getHostname(),
@@ -267,6 +268,7 @@ public class AptlyPublisher extends Notifier {
 
         private final CopyOnWriteList<AptlySite> sites = new CopyOnWriteList<AptlySite>();
         private final CopyOnWriteList<PackageItem> packageItems = new CopyOnWriteList<PackageItem>();
+        private final static Logger LOG = Logger.getLogger(DescriptorImpl.class.getName());
 
 
         /**
@@ -324,14 +326,14 @@ public class AptlyPublisher extends Notifier {
            try {
                data = req.getSubmittedForm();
            } catch (Exception e) {
-               System.console().printf(">> getSubmittedForm Exception: " + e.getMessage() + "\n");
+               LOG.severe(">> getSubmittedForm Exception: " + e.getMessage());
                return null;
            }
            try {
                 List<PackageItem> entries = req.bindJSONToList(PackageItem.class, data.getJSONObject("publisher").get("packageItems"));
                 pub.getPackageItems().addAll(entries);
            } catch (Exception e) {
-               System.console().printf(">> bindJSONToList Exception: " + e.getMessage() + "\n");
+               LOG.severe(">> bindJSONToList Exception: " + e.getMessage());
                return null;
            }
            return pub;
@@ -363,8 +365,6 @@ public class AptlyPublisher extends Notifier {
         */
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) {
-            System.console().printf(">> configure() <<<<<< \n");
-            System.console().printf("FORMDATA: " + formData.toString()  +"\n");
             List<AptlySite> asites = req.bindJSONToList(AptlySite.class,
                                         formData.get("site"));
             sites.replaceBy(asites);
