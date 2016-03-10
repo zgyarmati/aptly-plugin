@@ -72,21 +72,23 @@ public class AptlyRestClient {
 
     public String getAptlyServerVersion() throws AptlyRestException {
         String retval = "";
+        HttpResponse<JsonNode> jsonResponse;
         try {
             GetRequest req = Unirest.get("http://" + hostname + ":" + portnum +
                                          "/api/version");
-            req = req.header("accept", "application/json");
-            HttpResponse<JsonNode> jsonResponse = req.asJson();
-
-            retval = jsonResponse.getBody().getObject().getString("Version");
-            if (jsonResponse.getStatus() != 200){
-                throw new AptlyRestException(jsonResponse.getBody().toString());
+            if( username != null && !username.isEmpty()){
+                req = req.basicAuth(username, password);
             }
-
+            req = req.header("accept", "application/json");
+            jsonResponse = req.asJson();
         } catch (UnirestException ex) {
             logger.println("Failed to get version: " + ex.toString());
             throw new AptlyRestException(ex.toString());
         }
+        if (jsonResponse.getStatus() != 200){
+            throw new AptlyRestException(jsonResponse.getBody().toString());
+        }
+        retval = jsonResponse.getBody().getObject().getString("Version");
         return retval;
     }
 

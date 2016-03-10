@@ -179,7 +179,7 @@ public class AptlyPublisher extends Notifier {
 
         try {
             String result = client.getAptlyServerVersion();
-            listener.getLogger().println("Version result " +  result);
+            listener.getLogger().println("Aptly API version response: " +  result);
         } catch (Throwable th) {
             th.printStackTrace(listener.error("Failed to connect to the server"));
             build.setResult(Result.UNSTABLE);
