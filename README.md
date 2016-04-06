@@ -8,13 +8,20 @@ Jenkins plugin for aptly debian repository manager
 ## Install aptly
 
 (from http://www.aptly.info/download/)
+```shell
 echo "deb http://repo.aptly.info/ squeeze main" >> /etc/apt/sources.list
 apt-key adv --keyserver keys.gnupg.net --recv-keys E083A3782A194991
 apt-get update
 apt-get install aptly
-Running it:
-aptly api serve -listen=:1080
+```
 
+Running it:
+```shell
+aptly api serve -listen=:1080
+```
+
+
+Setting up the testproject:
 ```shell
 aptly repo create -distribution="jessie" -component="coolproject-testing" coolproject-testing-jessie
 aptly repo add coolproject-testing-jessie smartframeserver-snmpd_0.2.1_amd64.deb
@@ -28,7 +35,7 @@ aptly publish repo -architectures="amd64,i386" coolproject-testing-jessie
 ```
 
 ```shell
-aptly repo add coolproject-testing-jessie smartframeserver-snmpd_0.2.1_amd64.deb
+aptly repo add coolproject-testing-jessie mypack_0.2.1_amd64.deb
 aptly publish update jessie
 ```
 
