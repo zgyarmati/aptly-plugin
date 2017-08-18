@@ -322,15 +322,8 @@ public class AptlyPublisher extends Notifier {
         @Override
         public Publisher newInstance(StaplerRequest req, JSONObject formData) {
            AptlyPublisher pub = new AptlyPublisher();
-           JSONObject data;
            try {
-               data = req.getSubmittedForm();
-           } catch (Exception e) {
-               LOG.severe(">> getSubmittedForm Exception: " + e.getMessage());
-               return null;
-           }
-           try {
-                List<PackageItem> entries = req.bindJSONToList(PackageItem.class, data.getJSONObject("publisher").get("packageItems"));
+                List<PackageItem> entries = req.bindJSONToList(PackageItem.class, formData.get("packageItems"));
                 pub.getPackageItems().addAll(entries);
            } catch (Exception e) {
                LOG.severe(">> bindJSONToList Exception: " + e.getMessage());
