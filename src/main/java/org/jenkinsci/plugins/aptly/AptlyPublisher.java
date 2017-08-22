@@ -169,9 +169,10 @@ public class AptlyPublisher extends Notifier {
         AptlySite aptlysite = null;
             aptlysite = getSite();
             listener.getLogger().println("Using aptly site: " + aptlysite.getHostname());
-            listener.getLogger().println("Port " + aptlysite.getPort());
-            listener.getLogger().println("Username " + aptlysite.getUsername());
-            listener.getLogger().println("Timeout " + aptlysite.getTimeOut());
+            listener.getLogger().println("Port: " + aptlysite.getPort());
+            listener.getLogger().println("Username: " + aptlysite.getUsername());
+            listener.getLogger().println("Timeout: " + aptlysite.getTimeOut());
+
 
             AptlyRestClient client = new AptlyRestClient(listener.getLogger(),aptlysite.getHostname(),
                                 Integer.parseInt(aptlysite.getPort()), aptlysite.getTimeOut(),
@@ -187,6 +188,13 @@ public class AptlyPublisher extends Notifier {
         }
         List <PackageItem> itemlist = getPackageItems();
         for (PackageItem i : itemlist) {
+            final String reponame = Util.replaceMacro(i.getRepositoryName(), envVars);
+            final String repoprefix = Util.replaceMacro(i.getPrefixName(), envVars);
+            final String distribution = Util.replaceMacro(i.getDistributionName(), envVars);
+            listener.getLogger().println("Repo name: " + reponame);
+            listener.getLogger().println("Repo prefix: " + repoprefix);
+            listener.getLogger().println("Repo distribution: " + repoprefix);
+
             String uploaddirid = envVars.get("JOB_NAME") + "-" +
                                  envVars.get("BUILD_NUMBER") + "-" +
                                  UUID.randomUUID().toString().substring(0,6);
@@ -240,7 +248,7 @@ public class AptlyPublisher extends Notifier {
 
             // ################### ADD THE PACKAGES TO THE REPO  ###############
             try {
-                client.addUploadedFilesToRepo(i.getRepositoryName(), uploaddirid);
+                client.addUploadedFilesToRepo(reponame, uploaddirid);
             } catch (Throwable th) {
                 th.printStackTrace(listener.error("Failed to upload files"));
                 build.setResult(Result.UNSTABLE);
@@ -249,7 +257,7 @@ public class AptlyPublisher extends Notifier {
 
             // ################### UPDATE THE PUBLISHED REPO ###################
             try {
-                client.updatePublishRepo(i.getPrefixName(),i.getDistributionName());
+                client.updatePublishRepo(repoprefix, distribution);
             } catch (Throwable th) {
                 th.printStackTrace(listener.error("Failed to upload files"));
                 build.setResult(Result.UNSTABLE);
