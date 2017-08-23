@@ -193,7 +193,7 @@ public class AptlyPublisher extends Notifier {
             final String distribution = Util.replaceMacro(i.getDistributionName(), envVars);
             listener.getLogger().println("Repo name: " + reponame);
             listener.getLogger().println("Repo prefix: " + repoprefix);
-            listener.getLogger().println("Repo distribution: " + repoprefix);
+            listener.getLogger().println("Repo distribution: " + distribution);
 
             String uploaddirid = envVars.get("JOB_NAME") + "-" +
                                  envVars.get("BUILD_NUMBER") + "-" +
