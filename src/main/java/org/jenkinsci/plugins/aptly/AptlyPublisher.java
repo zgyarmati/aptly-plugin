@@ -168,14 +168,14 @@ public class AptlyPublisher extends Notifier {
 
         AptlySite aptlysite = null;
             aptlysite = getSite();
-            listener.getLogger().println("Using aptly site: " + aptlysite.getHostname());
-            listener.getLogger().println("Port: " + aptlysite.getPort());
+            listener.getLogger().println("Using aptly site: " + aptlysite.getUrl());
+            listener.getLogger().println("Self signed enabled: " + aptlysite.getSelfSignedEnabled());
             listener.getLogger().println("Username: " + aptlysite.getUsername());
             listener.getLogger().println("Timeout: " + aptlysite.getTimeOut());
 
 
-            AptlyRestClient client = new AptlyRestClient(listener.getLogger(),aptlysite.getHostname(),
-                                Integer.parseInt(aptlysite.getPort()), aptlysite.getTimeOut(),
+            AptlyRestClient client = new AptlyRestClient(listener.getLogger(),aptlysite.getUrl(),
+                                Boolean.parseBoolean(aptlysite.getSelfSignedEnabled()), aptlysite.getTimeOut(),
                                 aptlysite.getUsername(), aptlysite.getPassword());
 
         try {
@@ -371,26 +371,6 @@ public class AptlyPublisher extends Notifier {
             sites.replaceBy(asites);
             save();
             return true;
-        }
-
-        /**
-        * This method validates the current entered Aptly site configuration data.
-        *
-        * @param request
-        *          the current {@link javax.servlet.http.HttpServletRequest}
-        */
-        public FormValidation doLoginCheck(StaplerRequest request) {
-            String hostname = Util.fixEmpty(request.getParameter("hostname"));
-            if (hostname == null) { // hosts is not entered yet
-                return FormValidation.ok();
-            }
-            try {
-                AptlySite site = new AptlySite(hostname, request.getParameter("port"), request.getParameter("timeOut"), request.getParameter("user"),
-                request.getParameter("pass"));
-            } catch (Exception e) {
-                return FormValidation.error(e.getMessage());
-            }
-            return FormValidation.ok();
         }
     }
 }

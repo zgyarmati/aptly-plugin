@@ -51,13 +51,13 @@ public class AptlySite {
     private String profileName;
 
     /** The hostname. */
-    private String hostname;
+    private String url;
 
     /** The time out. */
     private int timeOut;
 
     /** The port. */
-    private int port;
+    private boolean enableSelfSigned;
 
     /** The username. */
     private String username;
@@ -78,10 +78,10 @@ public class AptlySite {
     *
     * @param profileName
     *          the profile name
-    * @param hostname
-    *          the hostname
-    * @param port
-    *          the port
+    * @param url
+    *          http[s]://hostname:port
+    * @param enableSelfSigned
+    *          sets whether self-signed SSL cert is allowed
     * @param timeOut
     *          the time out
     * @param username
@@ -90,10 +90,10 @@ public class AptlySite {
     *          the password
     */
     @DataBoundConstructor
-    public AptlySite(String profileName, String hostname, int port, int timeOut, String username, String password) {
+    public AptlySite(String profileName, String url, boolean enableSelfSigned, int timeOut, String username, String password) {
         this.profileName = profileName;
-        this.hostname = hostname;
-        this.port = port;
+        this.url = url;
+        this.enableSelfSigned = enableSelfSigned;
         this.timeOut = timeOut;
         this.username = username;
         this.password = password;
@@ -108,14 +108,14 @@ public class AptlySite {
     * @param username the username
     * @param password the password
     */
-    public AptlySite(String hostname, String port, String timeOut, String username, String password) {
-        this.hostname = hostname;
+    public AptlySite(String url, String enableSelfSigned, String timeOut, String username, String password) {
+        this.url = url;
         try {
-            this.port = Integer.parseInt(port);
-            this.timeOut = Integer.parseInt(timeOut);
+            this.enableSelfSigned = Boolean.parseBoolean(enableSelfSigned);
         } catch (Exception e) {
-            this.port = DEFAULT_HTTP_PORT;
+            this.enableSelfSigned = false;
         }
+        this.timeOut = Integer.parseInt(timeOut);
         this.username = username;
         this.password = password;
     }
@@ -146,7 +146,7 @@ public class AptlySite {
     */
     public String getDisplayName() {
         if (StringUtils.isEmpty(profileName)) {
-            return hostname;
+            return url;
         } else {
             return profileName;
         }
@@ -176,8 +176,8 @@ public class AptlySite {
     *
     * @return the hostname
     */
-    public String getHostname() {
-        return hostname;
+    public String getUrl() {
+        return url;
     }
 
     /**
@@ -186,17 +186,17 @@ public class AptlySite {
     * @param hostname
     *          the new hostname
     */
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     /**
-    * Gets the port.
+    * Gets whether self signed cert enabled
     *
-    * @return the port
+    * @return the value
     */
-    public String getPort() {
-        return  "" + port;
+    public String getSelfSignedEnabled() {
+        return  "" + this.enableSelfSigned;
     }
 
     /**
@@ -205,15 +205,15 @@ public class AptlySite {
     * @param port
     *          the new port
     */
-    public void setPort(String port) {
-        if (port != null) {
+    public void setSelfSignedEnabled(String enabled) {
+        if (enabled != null) {
             try {
-                this.port = Integer.parseInt(port);
-            } catch (NumberFormatException e) {
-                this.port = DEFAULT_HTTP_PORT;
+                this.enableSelfSigned = Boolean.parseBoolean(enabled);
+            } catch (Exception e) {
+                this.enableSelfSigned = false;
             }
         } else {
-            this.port = DEFAULT_HTTP_PORT;
+            this.enableSelfSigned = false;
         }
 
     }
@@ -264,7 +264,7 @@ public class AptlySite {
     * @return the name
     */
     public String getName() {
-        return hostname;
+        return this.profileName;
     }
 
 }

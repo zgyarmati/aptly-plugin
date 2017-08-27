@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2017 Zoltan Gyarmati (https://zgyarmati.de)
+ * Copyright (c) 2017 Zoltan Gyarmati (http://zgyarmati.de)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,23 @@ import java.io.Console;
 import java.util.List;
 import java.io.File;
 
+import javax.net.ssl.SSLContext;
+import javax.security.cert.CertificateException;
+import javax.security.cert.X509Certificate;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.conn.ssl.*;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+
+import java.security.NoSuchAlgorithmException;
 
 
 
@@ -53,36 +69,51 @@ import java.io.File;
 public class AptlyRestClient {
 
 
-    private String hostname;
-    private int portnum;
+    private String url;
+    private boolean enableSelfSigned;
     private int timeout;
     private String username;
     private String password;
     private PrintStream logger;
 
-    public AptlyRestClient(PrintStream logger, String hostname, int portnum,
+    public AptlyRestClient(PrintStream logger, String url, boolean enableSelfSigned,
                             int timeout, String username, String password ){
-        this.hostname = hostname;
-        this.portnum  = portnum;
+        this.url = url;
+        this.enableSelfSigned  = enableSelfSigned;
         this.timeout  = timeout;
         this.username = username;
         this.password = password;
         this.logger = logger;
+        if (enableSelfSigned){
+            try{
+                SSLContext sslcontext = SSLContexts.custom()
+                    .loadTrustMaterial(null, new TrustSelfSignedStrategy())
+                    .build();
+                SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext,SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+                CloseableHttpClient httpclient = HttpClients.custom()
+                    .setSSLSocketFactory(sslsf)
+                    .build();
+                Unirest.setHttpClient(httpclient);
+            } catch (Exception ex) {
+                logger.println("Failed to setup ssl self");
+            }
+        }
     }
 
     public String getAptlyServerVersion() throws AptlyRestException {
         String retval = "";
         HttpResponse<JsonNode> jsonResponse;
         try {
-            GetRequest req = Unirest.get("http://" + hostname + ":" + portnum +
+            GetRequest req = Unirest.get(this.url +
                                          "/api/version");
             if( username != null && !username.isEmpty()){
                 req = req.basicAuth(username, password);
             }
             req = req.header("accept", "application/json");
             jsonResponse = req.asJson();
+            logger.println("#################################  Response for version: " + jsonResponse.getBody().toString());
         } catch (UnirestException ex) {
-            logger.println("Failed to get version: " + ex.toString());
+            logger.println("#################################  Failed to get version: " + ex.toString());
             throw new AptlyRestException(ex.toString());
         }
         if (jsonResponse.getStatus() != 200){
@@ -95,7 +126,7 @@ public class AptlyRestClient {
     public void uploadFiles(List<File> filepaths, String uploaddir) throws AptlyRestException {
         logger.println("upload dir name: " + uploaddir);
         try {
-            HttpRequestWithBody req = Unirest.post("http://" + hostname + ":" + portnum +
+            HttpRequestWithBody req = Unirest.post(this.url +
                                          "/api/files/" + uploaddir);
             req = req.header("accept", "application/json");
             if( username != null && !username.isEmpty()){
@@ -116,7 +147,7 @@ public class AptlyRestClient {
     public void addUploadedFilesToRepo(String reponame, String uploaddir) throws AptlyRestException {
         // add to the repo
         try {
-            HttpRequestWithBody req = Unirest.post("http://" + hostname + ":" + portnum +
+            HttpRequestWithBody req = Unirest.post(this.url +
                                             "/api/repos/"+ reponame +"/file/" + uploaddir);
             req = req.header("accept", "application/json");
             if( username != null && !username.isEmpty()){
@@ -124,6 +155,7 @@ public class AptlyRestClient {
             }
 
             HttpResponse<JsonNode> jsonResponse = req.queryString("forceReplace", "1").asJson();
+
             logger.printf("Response code: <%d>, body <%s>\n",
                     jsonResponse.getStatus(), jsonResponse.getBody().toString());
             if (jsonResponse.getStatus() != 200){
@@ -138,7 +170,7 @@ public class AptlyRestClient {
     // update published repo
     public void updatePublishRepo(String prefix, String distribution) throws AptlyRestException {
         try {
-            HttpRequestWithBody req = Unirest.put("http://" + hostname + ":" + portnum +
+            HttpRequestWithBody req = Unirest.put(this.url +
                                          "/api/publish/" + prefix + "/" + distribution);
             req = req.header("accept", "application/json");
             req = req.header("Content-Type", "application/json");
@@ -159,17 +191,17 @@ public class AptlyRestClient {
 
 
     /**
-     * @return the portnum
+     * @return gives back whether a self signed SSL cert is accepted
      */
-    public  int getPortnum() {
-        return portnum;
+    boolean getEnableSelfSigned() {
+        return this.enableSelfSigned;
     }
 
     /**
-     * @param aPortnum the portnum to set
+     * @param enableSelfSigned set whether accepting self signed cert
      */
-    public void setPortnum(int aPortnum) {
-        portnum = aPortnum;
+    public void setEnableSelfSigned(boolean enableSelfSigned) {
+        this.enableSelfSigned = enableSelfSigned;
     }
 
     /**
@@ -190,15 +222,15 @@ public class AptlyRestClient {
     /**
      * @return the hostname
      */
-    public String getHostname() {
-        return hostname;
+    public String getUrl() {
+        return url;
     }
 
     /**
      * @param hostname the hostname to set
      */
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
+    public void setHostname(String url) {
+        this.url = url;
     }
 
     /**
