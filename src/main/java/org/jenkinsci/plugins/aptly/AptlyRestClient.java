@@ -111,9 +111,9 @@ public class AptlyRestClient {
             }
             req = req.header("accept", "application/json");
             jsonResponse = req.asJson();
-            logger.println("#################################  Response for version: " + jsonResponse.getBody().toString());
+            logger.println("Response for version: " + jsonResponse.getBody().toString());
         } catch (UnirestException ex) {
-            logger.println("#################################  Failed to get version: " + ex.toString());
+            logger.println("Failed to get version: " + ex.toString());
             throw new AptlyRestException(ex.toString());
         }
         if (jsonResponse.getStatus() != 200){
