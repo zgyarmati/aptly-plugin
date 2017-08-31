@@ -12,7 +12,7 @@
             <f:textbox name="aptly.url" value="${site.url}"/>
           </f:entry>
           <f:entry title="Enable self signed SSL cert" field="enableselfsigned">
-            <f:checkbox name="publisher.enableSelfSigned" checked="${instance.enableSelfSigned}"/>
+              <f:checkbox name="aptly.enableSelfSigned" checked="${site.enableSelfSigned}"/>
           </f:entry>
           <f:entry title="TimeOut" field="timeout">
             <f:textbox name="aptly.timeOut" value="${site.timeOut}"/>
@@ -23,6 +23,9 @@
           <f:entry title="Password">
             <input class="setting-input" name="aptly.password" type="password" value="${site.password}"/>
           </f:entry>
+          <f:validateButton
+           title="${%Test Connection}" progress="${%Testing...}"
+            method="loginCheck" with="aptly.profileName,aptly.url,aptly.enableSelfSigned,aptly.timeOut,aptly.username,aptly.password" />
           <f:entry title="">
             <div align="right">
               <f:repeatableDeleteButton/>

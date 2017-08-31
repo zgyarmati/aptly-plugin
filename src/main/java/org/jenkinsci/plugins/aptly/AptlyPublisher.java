@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.io.PrintStream;
 import java.io.File;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -53,7 +54,9 @@ import org.apache.commons.io.FileUtils;
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.QueryParameter;
 import org.apache.commons.collections.iterators.ArrayIterator;
+
 
 /**
  * This class implements the Aptly publisher, takes care of orchestring the
@@ -169,13 +172,13 @@ public class AptlyPublisher extends Notifier {
         AptlySite aptlysite = null;
             aptlysite = getSite();
             listener.getLogger().println("Using aptly site: " + aptlysite.getUrl());
-            listener.getLogger().println("Self signed enabled: " + aptlysite.getSelfSignedEnabled());
+            listener.getLogger().println("Self signed enabled: " + aptlysite.getEnableSelfSigned());
             listener.getLogger().println("Username: " + aptlysite.getUsername());
             listener.getLogger().println("Timeout: " + aptlysite.getTimeOut());
 
 
             AptlyRestClient client = new AptlyRestClient(listener.getLogger(),aptlysite.getUrl(),
-                                Boolean.parseBoolean(aptlysite.getSelfSignedEnabled()), aptlysite.getTimeOut(),
+                                Boolean.parseBoolean(aptlysite.getEnableSelfSigned()), aptlysite.getTimeOut(),
                                 aptlysite.getUsername(), aptlysite.getPassword());
 
         try {
@@ -263,9 +266,9 @@ public class AptlyPublisher extends Notifier {
                 build.setResult(Result.UNSTABLE);
                 return false;
             }
+        }
+        return true;
     }
-    return true;
-}
 
     /**
     * This class holds the metadata for the AptlyPublisher.
@@ -371,6 +374,31 @@ public class AptlyPublisher extends Notifier {
             sites.replaceBy(asites);
             save();
             return true;
+        }
+        /**
+        * This method validates the current entered Aptly site configuration data.
+        * @param request the current {@link javax.servlet.http.HttpServletRequest}
+        */
+        public FormValidation doLoginCheck(
+                                           @QueryParameter("aptly.profileName") final String sitename,
+                                           @QueryParameter("aptly.url") final String url,
+                                           @QueryParameter("aptly.enableSelfSigned") final String enableselfsigned,
+                                           @QueryParameter("aptly.timeOut") final String timeout,
+                                           @QueryParameter("aptly.username") final String username,
+                                           @QueryParameter("aptly.password") final String password)
+        {
+            LOG.info("Login check for " + sitename);
+            PrintStream logstream = new PrintStream(new LogOutputStream(), true);
+            try {
+                AptlyRestClient client =  new AptlyRestClient(logstream,url,
+                                            Boolean.parseBoolean(enableselfsigned),
+                                            Integer.parseInt(timeout),
+                                            username, password);
+                final String ver = client.getAptlyServerVersion();
+                return FormValidation.ok("Success, Aptly version: " + ver);
+            } catch (Exception e) {
+                return FormValidation.error(e.getMessage());
+            }
         }
     }
 }

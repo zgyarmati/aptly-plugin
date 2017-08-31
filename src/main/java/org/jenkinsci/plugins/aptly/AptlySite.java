@@ -195,7 +195,7 @@ public class AptlySite {
     *
     * @return the value
     */
-    public String getSelfSignedEnabled() {
+    public String getEnableSelfSigned() {
         return  "" + this.enableSelfSigned;
     }
 
@@ -205,7 +205,7 @@ public class AptlySite {
     * @param port
     *          the new port
     */
-    public void setSelfSignedEnabled(String enabled) {
+    public void setEnableSelfSigned(String enabled) {
         if (enabled != null) {
             try {
                 this.enableSelfSigned = Boolean.parseBoolean(enabled);
