@@ -177,9 +177,7 @@ public class AptlyPublisher extends Notifier {
             listener.getLogger().println("Timeout: " + aptlysite.getTimeOut());
 
 
-            AptlyRestClient client = new AptlyRestClient(listener.getLogger(),aptlysite.getUrl(),
-                                Boolean.parseBoolean(aptlysite.getEnableSelfSigned()), aptlysite.getTimeOut(),
-                                aptlysite.getUsername(), aptlysite.getPassword());
+            AptlyRestClient client = new AptlyRestClient(listener.getLogger(),aptlysite);
 
         try {
             String result = client.getAptlyServerVersion();
@@ -390,11 +388,10 @@ public class AptlyPublisher extends Notifier {
             LOG.info("Login check for " + sitename);
             PrintStream logstream = new PrintStream(new LogOutputStream(), true);
             try {
-                AptlyRestClient client =  new AptlyRestClient(logstream,url,
-                                            Boolean.parseBoolean(enableselfsigned),
-                                            Integer.parseInt(timeout),
-                                            username, password);
+                AptlySite site = new AptlySite(url,enableselfsigned,timeout,username,password);
+                AptlyRestClient client =  new AptlyRestClient(logstream, site);
                 final String ver = client.getAptlyServerVersion();
+                LOG.info("got version " + ver);
                 return FormValidation.ok("Success, Aptly version: " + ver);
             } catch (Exception e) {
                 return FormValidation.error(e.getMessage());

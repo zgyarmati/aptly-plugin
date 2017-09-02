@@ -55,6 +55,7 @@ import org.apache.http.conn.ssl.*;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.mashape.unirest.request.HttpRequest;
 
 import java.security.NoSuchAlgorithmException;
 
@@ -69,22 +70,14 @@ import java.security.NoSuchAlgorithmException;
 public class AptlyRestClient {
 
 
-    private String url;
-    private boolean enableSelfSigned;
-    private int timeout;
-    private String username;
-    private String password;
-    private PrintStream logger;
+    private AptlySite   mSite;
+    private PrintStream mLogger;
 
-    public AptlyRestClient(PrintStream logger, String url, boolean enableSelfSigned,
-                            int timeout, String username, String password ){
-        this.url = url;
-        this.enableSelfSigned  = enableSelfSigned;
-        this.timeout  = timeout;
-        this.username = username;
-        this.password = password;
-        this.logger = logger;
-        if (enableSelfSigned){
+    public AptlyRestClient(PrintStream logger, AptlySite site)
+    {
+        this.mSite = site;
+        this.mLogger = logger;
+        if (Boolean.parseBoolean(site.getEnableSelfSigned())){
             try{
                 SSLContext sslcontext = SSLContexts.custom()
                     .loadTrustMaterial(null, new TrustSelfSignedStrategy())
@@ -99,23 +92,34 @@ public class AptlyRestClient {
             }
         }
     }
-
-    public String getAptlyServerVersion() throws AptlyRestException {
+    
+    
+    /** configures the basic auth for the given request, if needed
+     * @param req The HttpRequest to configure 
+     */ 
+    private void setupAuth(HttpRequest req)
+    {
+            if(!mSite.getUsername().isEmpty()){
+                req.basicAuth(mSite.getUsername(), mSite.getPassword());
+            }
+    }
+    
+    
+    public String getAptlyServerVersion() throws AptlyRestException
+    {
         String retval = "";
         HttpResponse<JsonNode> jsonResponse;
         try {
-            GetRequest req = Unirest.get(this.url +
-                                         "/api/version");
-            if( username != null && !username.isEmpty()){
-                req = req.basicAuth(username, password);
-            }
-            req = req.header("accept", "application/json");
+            GetRequest req = Unirest.get(mSite.getUrl() +"/api/version");
+            setupAuth(req);
+            req = req.header("accept", "application/json");            
             jsonResponse = req.asJson();
-            logger.println("Response for version: " + jsonResponse.getBody().toString());
+            mLogger.println("Response for version: " + jsonResponse.getBody().toString());
         } catch (UnirestException ex) {
-            logger.println("Failed to get version: " + ex.toString());
+            mLogger.println("Failed to get version: " + ex.toString());
             throw new AptlyRestException(ex.toString());
         }
+        
         if (jsonResponse.getStatus() != 200){
             throw new AptlyRestException(jsonResponse.getBody().toString());
         }
@@ -123,141 +127,67 @@ public class AptlyRestClient {
         return retval;
     }
 
-    public void uploadFiles(List<File> filepaths, String uploaddir) throws AptlyRestException {
-        logger.println("upload dir name: " + uploaddir);
+    
+    public void uploadFiles(List<File> filepaths, String uploaddir) throws AptlyRestException
+    {
+        mLogger.println("upload dir name: " + uploaddir);
         try {
-            HttpRequestWithBody req = Unirest.post(this.url +
+            HttpRequestWithBody req = Unirest.post(mSite.getUrl() +
                                          "/api/files/" + uploaddir);
             req = req.header("accept", "application/json");
-            if( username != null && !username.isEmpty()){
-                req = req.basicAuth(username, password);
-            }
+            setupAuth(req);
             HttpResponse<JsonNode> jsonResponse = req.field("file", filepaths).asJson();
-            logger.printf("Response code: <%d>, body <%s>\n",
+            mLogger.printf("Response code: <%d>, body <%s>\n",
                     jsonResponse.getStatus(), jsonResponse.getBody().toString());
             if (jsonResponse.getStatus() != 200){
                 throw new AptlyRestException(jsonResponse.getBody().toString());
             }
         } catch (UnirestException ex) {
-            logger.printf("Failed to upload the packages: %s\n", ex.toString());
+            mLogger.printf("Failed to upload the packages: %s\n", ex.toString());
             throw new AptlyRestException(ex.toString());
         }
     }
 
-    public void addUploadedFilesToRepo(String reponame, String uploaddir) throws AptlyRestException {
+    
+    public void addUploadedFilesToRepo(String reponame, String uploaddir) throws AptlyRestException
+    {
         // add to the repo
         try {
-            HttpRequestWithBody req = Unirest.post(this.url +
+            HttpRequestWithBody req = Unirest.post(mSite.getUrl() +
                                             "/api/repos/"+ reponame +"/file/" + uploaddir);
             req = req.header("accept", "application/json");
-            if( username != null && !username.isEmpty()){
-                req = req.basicAuth(username, password);
-            }
-
+            setupAuth(req);
             HttpResponse<JsonNode> jsonResponse = req.queryString("forceReplace", "1").asJson();
 
-            logger.printf("Response code: <%d>, body <%s>\n",
+            mLogger.printf("Response code: <%d>, body <%s>\n",
                     jsonResponse.getStatus(), jsonResponse.getBody().toString());
             if (jsonResponse.getStatus() != 200){
                 throw new AptlyRestException(jsonResponse.getBody().toString());
             }
         } catch (UnirestException ex) {
-            logger.printf("Failed to add uploaded packages to repo: %s\n", ex.toString());
+            mLogger.printf("Failed to add uploaded packages to repo: %s\n", ex.toString());
             throw new AptlyRestException(ex.toString());
         }
     }
 
     // update published repo
-    public void updatePublishRepo(String prefix, String distribution) throws AptlyRestException {
+    public void updatePublishRepo(String prefix, String distribution) throws AptlyRestException
+    {
         try {
-            HttpRequestWithBody req = Unirest.put(this.url +
-                                         "/api/publish/" + prefix + "/" + distribution);
+            HttpRequestWithBody req = Unirest.put(mSite.getUrl() + "/api/publish/"
+                                                  + prefix + "/" + distribution);
             req = req.header("accept", "application/json");
             req = req.header("Content-Type", "application/json");
-            if( username != null && !username.isEmpty()){
-                req = req.basicAuth(username, password);
-            }
+            setupAuth(req);
             HttpResponse<JsonNode> jsonResponse = req.body("{\"Signing\":{\"Skip\": true } , \"ForceOverwrite\" : true}").asJson();
-            logger.printf("Response code: <%d>, body <%s>\n",
+            mLogger.printf("Response code: <%d>, body <%s>\n",
                     jsonResponse.getStatus(), jsonResponse.getBody().toString());
             if (jsonResponse.getStatus() != 200){
                 throw new AptlyRestException(jsonResponse.getBody().toString());
             }
         } catch (UnirestException ex) {
-            logger.printf("Failed to publish repo: " + ex.toString());
+            mLogger.printf("Failed to publish repo: " + ex.toString());
             throw new AptlyRestException(ex.toString());
         }
-    }
-
-
-    /**
-     * @return gives back whether a self signed SSL cert is accepted
-     */
-    boolean getEnableSelfSigned() {
-        return this.enableSelfSigned;
-    }
-
-    /**
-     * @param enableSelfSigned set whether accepting self signed cert
-     */
-    public void setEnableSelfSigned(boolean enableSelfSigned) {
-        this.enableSelfSigned = enableSelfSigned;
-    }
-
-    /**
-     * @return the timeout
-     */
-    public int getTimeout() {
-        return timeout;
-    }
-
-    /**
-     * @param aTimeout the timeout to set
-     */
-    public void setTimeout(int aTimeout) {
-        timeout = aTimeout;
-        Unirest.setTimeouts(timeout * 1000, timeout * 1000);
-    }
-
-    /**
-     * @return the hostname
-     */
-    public String getUrl() {
-        return url;
-    }
-
-    /**
-     * @param hostname the hostname to set
-     */
-    public void setHostname(String url) {
-        this.url = url;
-    }
-
-    /**
-     * @return the username
-     */
-    public String getUsername() {
-        return username;
-    }
-
-    /**
-     * @param username the username to set
-     */
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    /**
-     * @return the password
-     */
-    public String getPassword() {
-        return password;
-    }
-
-    /**
-     * @param password the password to set
-     */
-    public void setPassword(String password) {
-        this.password = password;
     }
 }
