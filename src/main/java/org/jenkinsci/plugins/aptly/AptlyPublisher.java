@@ -366,7 +366,9 @@ public class AptlyPublisher extends Notifier {
         * @see hudson.model.Descriptor#configure(org.kohsuke.stapler.StaplerRequest)
         */
         @Override
-        public boolean configure(StaplerRequest req, JSONObject formData) {
+        public boolean configure(StaplerRequest req, JSONObject formData) 
+        {
+            
             List<AptlySite> asites = req.bindJSONToList(AptlySite.class,
                                         formData.get("site"));
             sites.replaceBy(asites);

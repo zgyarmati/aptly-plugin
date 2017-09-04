@@ -38,34 +38,59 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 /**
  * This class represents an Aptly site's connection and authentication details
  * @author $Author: zgyarmati <mr.zoltan.gyarmati@gmail.com>
  */
 public class AptlySite {
 
-    /** The Constant DEFAULT_HTTP_PORT. */
-    private static final int DEFAULT_HTTP_PORT = 80;
-
+    public enum GPGPASSPHRASETYPE
+    {
+        PASSPHRASE,PASSPHRASEFILE
+    }
+    
     /** The profile name. */
-    private String profileName;
+    private String mProfileName;
 
     /** The hostname. */
-    private String url;
+    private String mUrl;
 
     /** The time out. */
-    private int timeOut;
+    private int mTimeout;
 
     /** The port. */
-    private boolean enableSelfSigned;
+    private boolean mEnableSelfSigned;
 
     /** The username. */
-    private String username;
+    private String mUsername;
 
     /** The password. */
-    private String password;
+    private String mPassword;
 
+    /**  */
+    private boolean mGpgEnabled;
 
+    /** */
+    private String mGpgKeyname;
+    
+    /** */
+    private String mGpgKeyring;
+    
+    /** */
+    private String mGpgSecretKeyring;
+    
+    /** */
+    private String mGpgPassphraseType;
+    
+    /** */
+    private String mGpgPassphrase;
+    
+    /** */
+    private String mGpgPassphraseFile;
+
+    
+        
     /**
     * Instantiates a new Aptly site.
     */
@@ -90,13 +115,24 @@ public class AptlySite {
     *          the password
     */
     @DataBoundConstructor
-    public AptlySite(String profileName, String url, boolean enableSelfSigned, int timeOut, String username, String password) {
-        this.profileName = profileName;
-        this.url = url;
-        this.enableSelfSigned = enableSelfSigned;
-        this.timeOut = timeOut;
-        this.username = username;
-        this.password = password;
+    public AptlySite(String profileName, String url, boolean enableSelfSigned, 
+                     int timeOut, String username, String password, Boolean gpgenabled, 
+                     String gpgkeyname, String gpgkeyring, String gpgsecretkeyring,
+                     String gpgpassphrasetype, String gpgpassphrase, String gpgpassphrasefile)
+    {
+        this.mProfileName = profileName;
+        this.mUrl = url;
+        this.mEnableSelfSigned = enableSelfSigned;
+        this.mTimeout = timeOut;
+        this.mUsername = username;
+        this.mPassword = password;
+        this.mGpgEnabled = gpgenabled;
+        this.mGpgKeyring = gpgkeyring;
+        this.mGpgKeyring = gpgkeyname;
+        this.mGpgSecretKeyring = gpgsecretkeyring;
+        this.mGpgPassphraseType = gpgpassphrasetype;
+        this.mGpgPassphrase = gpgpassphrase;
+        this.mGpgPassphraseFile = gpgpassphrasefile;
     }
 
     /**
@@ -108,16 +144,18 @@ public class AptlySite {
     * @param username the username
     * @param password the password
     */
-    public AptlySite(String url, String enableSelfSigned, String timeOut, String username, String password) {
-        this.url = url;
+    public AptlySite(String url, String enableSelfSigned, String timeOut, 
+                     String username, String password)
+    {
+        this.mUrl = url;
         try {
-            this.enableSelfSigned = Boolean.parseBoolean(enableSelfSigned);
+            this.mEnableSelfSigned = Boolean.parseBoolean(enableSelfSigned);
         } catch (Exception e) {
-            this.enableSelfSigned = false;
+            this.mEnableSelfSigned = false;
         }
-        this.timeOut = Integer.parseInt(timeOut);
-        this.username = username;
-        this.password = password;
+        this.mTimeout = Integer.parseInt(timeOut);
+        this.mUsername = username;
+        this.mPassword = password;
     }
 
     /**
@@ -125,8 +163,9 @@ public class AptlySite {
     *
     * @return the time out
     */
-    public int getTimeOut() {
-        return timeOut;
+    public int getTimeOut()
+    {
+        return mTimeout;
     }
 
     /**
@@ -135,8 +174,10 @@ public class AptlySite {
     * @param timeOut
     *          the new time out
     */
-    public void setTimeOut(int timeOut) {
-        this.timeOut = timeOut;
+    @DataBoundSetter
+    public void setTimeOut(int timeOut)
+    {
+        this.mTimeout = timeOut;
     }
 
     /**
@@ -144,11 +185,12 @@ public class AptlySite {
     *
     * @return the display name
     */
-    public String getDisplayName() {
-        if (StringUtils.isEmpty(profileName)) {
-            return url;
+    public String getDisplayName()
+    {
+        if (StringUtils.isEmpty(mProfileName)) {
+            return mUrl;
         } else {
-            return profileName;
+            return mProfileName;
         }
     }
 
@@ -157,8 +199,9 @@ public class AptlySite {
     *
     * @return the profile name
     */
-    public String getProfileName(){
-        return profileName;
+    public String getProfileName()
+    {
+        return mProfileName;
     }
 
     /**
@@ -167,27 +210,31 @@ public class AptlySite {
     * @param profileName
     *          the new profile name
     */
-    public void setProfileName(String profileName) {
-        this.profileName = profileName;
+    @DataBoundSetter
+    public void setProfileName(String profileName)
+    {
+        this.mProfileName = profileName;
     }
 
     /**
-    * Gets the hostname.
+    * Gets the url.
     *
     * @return the hostname
     */
     public String getUrl() {
-        return url;
+        return mUrl;
     }
 
     /**
-    * Sets the hostname.
+    * Sets the url
     *
-    * @param hostname
+    * @param url
     *          the new hostname
     */
-    public void setUrl(String url) {
-        this.url = url;
+    @DataBoundSetter
+    public void setUrl(String url)
+    {
+        this.mUrl = url;
     }
 
     /**
@@ -195,27 +242,28 @@ public class AptlySite {
     *
     * @return the value
     */
-    public String getEnableSelfSigned() {
-        return  "" + this.enableSelfSigned;
+    public String getEnableSelfSigned()
+    {
+        return  "" + this.mEnableSelfSigned;
     }
 
     /**
-    * Sets the port.
     *
-    * @param port
-    *          the new port
+    * @param enabled
+    *          whether accepting of self signed certs in enabled
     */
-    public void setEnableSelfSigned(String enabled) {
+    @DataBoundSetter
+    public void setEnableSelfSigned(String enabled)
+    {
         if (enabled != null) {
             try {
-                this.enableSelfSigned = Boolean.parseBoolean(enabled);
+                this.mEnableSelfSigned = Boolean.parseBoolean(enabled);
             } catch (Exception e) {
-                this.enableSelfSigned = false;
+                this.mEnableSelfSigned = false;
             }
         } else {
-            this.enableSelfSigned = false;
+            this.mEnableSelfSigned = false;
         }
-
     }
 
 
@@ -224,8 +272,10 @@ public class AptlySite {
     *
     * @return the username
     */
-    public String getUsername() {
-        return username;
+    @DataBoundSetter
+    public String getUsername()
+    {
+        return mUsername;
     }
 
     /**
@@ -234,8 +284,10 @@ public class AptlySite {
     * @param username
     *          the new username
     */
-    public void setUsername(String username) {
-        this.username = username;
+    @DataBoundSetter
+    public void setUsername(String username)
+    {
+        this.mUsername = username;
     }
 
     /**
@@ -243,8 +295,9 @@ public class AptlySite {
     *
     * @return the password
     */
-    public String getPassword() {
-        return password;
+    public String getPassword()
+    {
+        return mPassword;
     }
 
     /**
@@ -253,18 +306,91 @@ public class AptlySite {
     * @param password
     *          the new password
     */
-    public void setPassword(String password) {
-        this.password = password;
+    @DataBoundSetter
+    public void setPassword(String password)
+    {
+        this.mPassword = password;
     }
-
 
     /**
     * Gets the name.
     *
     * @return the name
     */
-    public String getName() {
-        return this.profileName;
+    public String getName()
+    {
+        return this.mProfileName;
+    }
+    
+    public String getGpgEnabled()
+    {
+        return "" + mGpgEnabled;
+    }
+    
+    @DataBoundSetter
+    public void setGpgEnabled(boolean mGpgEnabled)
+    {
+        this.mGpgEnabled = mGpgEnabled;
+    }
+    
+    public String getGpgKeyname() 
+    {
+        return mGpgKeyname;
+    }
+    
+    @DataBoundSetter
+    public void setGpgKeyname(String gpgKeyname) 
+    {
+        this.mGpgKeyname = gpgKeyname;
+    }
+    
+    public String getGpgKeyring() 
+    {
+        return mGpgKeyring;
+    }
+    @DataBoundSetter 
+    public void setGpgKeyring(String gpgKeyring) 
+    {
+        this.mGpgKeyring = gpgKeyring;
+    }
+    @DataBoundSetter
+    public String getGpgSecretKeyring()
+    {
+        return mGpgSecretKeyring;
+    }
+    @DataBoundSetter
+    public void setGpgSecretKeyring(String gpgSecretKeyring)
+    {
+        this.mGpgSecretKeyring = gpgSecretKeyring;
+    }
+    
+    public String getGpgPassphraseType()
+    {
+        return mGpgPassphraseType;
+    }
+    @DataBoundSetter
+    public void setGpgPassphraseType(String gpgPassphraseType)
+    {
+        this.mGpgPassphraseType = gpgPassphraseType;
+    }
+    
+    public String getGpgPassphrase()
+    {
+        return mGpgPassphrase;
+    }
+    @DataBoundSetter
+    public void setGpgPassphrase(String gpgPassphrase)
+    {
+        this.mGpgPassphrase = gpgPassphrase;
     }
 
+    public String getGpgPassphraseFile()
+    {
+        return mGpgPassphraseFile;
+    }
+    @DataBoundSetter
+    public void setGpgPassphraseFile(String gpgPassphraseFile)
+    {
+        this.mGpgPassphraseFile = gpgPassphraseFile;
+    }
 }

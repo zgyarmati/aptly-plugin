@@ -75,6 +75,7 @@ public class AptlyRestClient {
 
     public AptlyRestClient(PrintStream logger, AptlySite site)
     {
+        
         this.mSite = site;
         this.mLogger = logger;
         if (Boolean.parseBoolean(site.getEnableSelfSigned())){
@@ -179,7 +180,11 @@ public class AptlyRestClient {
             req = req.header("accept", "application/json");
             req = req.header("Content-Type", "application/json");
             setupAuth(req);
-            HttpResponse<JsonNode> jsonResponse = req.body("{\"Signing\":{\"Skip\": true } , \"ForceOverwrite\" : true}").asJson();
+            JSONObject options = new JSONObject();
+            options.put("ForceOverwrite", true);
+            options.put("Signing",buildSigningJson());
+            //System.out.println(">>>>>>>>>>>>>>>>>>>>> JSON:" + options.toString());
+            HttpResponse<JsonNode> jsonResponse = req.body(options.toString()).asJson();
             mLogger.printf("Response code: <%d>, body <%s>\n",
                     jsonResponse.getStatus(), jsonResponse.getBody().toString());
             if (jsonResponse.getStatus() != 200){
@@ -189,5 +194,42 @@ public class AptlyRestClient {
             mLogger.printf("Failed to publish repo: " + ex.toString());
             throw new AptlyRestException(ex.toString());
         }
+    }
+
+    private JSONObject buildSigningJson()
+    {
+        JSONObject retval = new JSONObject();
+        if (!Boolean.parseBoolean(mSite.getGpgEnabled())){
+            retval.put("Skip",true);
+            return retval;
+        }
+        
+        retval.put("Skip",false);
+        
+        if (!mSite.getPassword().isEmpty()){
+            retval.put("Batch",true);
+        }
+        
+        if (!mSite.getGpgKeyname().isEmpty()){
+            retval.put("GpgKey",mSite.getGpgKeyname());
+        }
+        
+        if (!mSite.getGpgKeyring().isEmpty()){
+            retval.put("Keyring",mSite.getGpgKeyring());
+        }
+        
+        if (!mSite.getGpgSecretKeyring().isEmpty()){
+            retval.put("SecretKeyring",mSite.getGpgSecretKeyring());
+        }
+        
+        if ("passphrase".equals(mSite.getGpgPassphraseType())){
+                retval.put("Passphrase",mSite.getGpgPassphrase());
+        }
+        
+        else if ("passphrasefile".equals(mSite.getGpgPassphraseType())){
+                retval.put("Passphrase",mSite.getGpgPassphraseFile());
+        }
+        
+        return retval;
     }
 }
