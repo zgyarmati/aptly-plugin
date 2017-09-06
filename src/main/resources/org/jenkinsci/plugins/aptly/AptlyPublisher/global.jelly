@@ -24,7 +24,7 @@
               <f:checkbox name="aptly.enableSelfSigned" checked="${site.enableSelfSigned}"/>
           </f:entry>
           <f:entry title="TimeOut" field="timeout">
-            <f:textbox name="aptly.timeOut" value="${site.timeOut}"/>
+            <f:textbox name="aptly.timeOut" value="${site.timeOut}" default="1"/>
           </f:entry>
           <f:entry title="User Name" field="username">
             <f:textbox name="aptly.username" value="${site.username}"/>

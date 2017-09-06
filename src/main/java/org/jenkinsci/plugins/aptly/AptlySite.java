@@ -113,13 +113,16 @@ public class AptlySite {
     *          the username
     * @param password
     *          the password
+     * @throws org.jenkinsci.plugins.aptly.AptlyRestException
     */
     @DataBoundConstructor
     public AptlySite(String profileName, String url, boolean enableSelfSigned, 
                      int timeOut, String username, String password, Boolean gpgenabled, 
                      String gpgkeyname, String gpgkeyring, String gpgsecretkeyring,
                      String gpgpassphrasetype, String gpgpassphrase, String gpgpassphrasefile)
+                     throws AptlyRestException
     {
+        
         this.mProfileName = profileName;
         this.mUrl = url;
         this.mEnableSelfSigned = enableSelfSigned;
@@ -133,6 +136,7 @@ public class AptlySite {
         this.mGpgPassphraseType = gpgpassphrasetype;
         this.mGpgPassphrase = gpgpassphrase;
         this.mGpgPassphraseFile = gpgpassphrasefile;
+        
     }
 
     /**
@@ -143,9 +147,10 @@ public class AptlySite {
     * @param timeOut  the time out
     * @param username the username
     * @param password the password
+    * @throws org.jenkinsci.plugins.aptly.AptlyRestException
     */
     public AptlySite(String url, String enableSelfSigned, String timeOut, 
-                     String username, String password)
+                     String username, String password) throws AptlyRestException
     {
         this.mUrl = url;
         try {
@@ -156,6 +161,9 @@ public class AptlySite {
         this.mTimeout = Integer.parseInt(timeOut);
         this.mUsername = username;
         this.mPassword = password;
+        if (mUrl.isEmpty()){
+            throw new AptlyRestException("URL is empty!");
+        }
     }
 
     /**
