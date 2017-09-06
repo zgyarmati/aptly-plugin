@@ -27,6 +27,7 @@ package org.jenkinsci.plugins.aptly;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.request.GetRequest;
@@ -95,37 +96,66 @@ public class AptlyRestClient {
     }
     
     
-    /** configures the basic auth for the given request, if needed
-     * @param req The HttpRequest to configure 
-     */ 
-    private void setupAuth(HttpRequest req)
-    {
-            if(!mSite.getUsername().isEmpty()){
+    /** Sends the request, after doing the common configuration (accept header,
+     * auth...) and returns the answer as JSON, or throws the error.
+     * @param req the UniRest HttpRequest to send
+     * @return the answer as JSON
+     */
+    private JSONObject sendRequest(HttpRequest req) throws AptlyRestException
+    {   
+        HttpResponse<String> response;
+        if(!mSite.getUsername().isEmpty()){
                 req.basicAuth(mSite.getUsername(), mSite.getPassword());
+        }
+        
+        req = req.header("accept", "application/json");
+        try {
+            response = req.asString();
+        }
+        catch (UnirestException ex) {
+            throw new AptlyRestException("API request failed: " + ex.getMessage());
+        }
+        
+        if (response.getStatus() != 200){
+            throw new AptlyRestException("API request failed, response from server: " + 
+                                          response.getStatusText());
+        } 
+        mLogger.printf("Aptly API response code: <%d>, body: <%s>\n",
+                    response.getStatus(), response.getBody().trim());
+        
+        JSONObject json = new JSONObject();
+        
+        try {
+            json = new JSONObject(response.getBody());
+        }
+        catch(org.json.JSONException ex){
+            // grr, the upload request gives back a JSON array, 
+            // not object as all the others, so let the hack begin...
+            try {
+                JSONArray ja = new JSONArray(response.getBody());
+                json.put("UploadedFiles", ja);
             }
+            catch (org.json.JSONException e) {
+                mLogger.printf("Response JSON parsing error <%s>, ignoring",e.getMessage());
+            }
+        }
+        return json;
     }
     
     
     public String getAptlyServerVersion() throws AptlyRestException
     {
-        String retval = "";
-        HttpResponse<JsonNode> jsonResponse;
+        String retval;
         try {
             GetRequest req = Unirest.get(mSite.getUrl() +"/api/version");
-            setupAuth(req);
-            req = req.header("accept", "application/json");            
-            jsonResponse = req.asJson();
-            mLogger.println("Response for version: " + jsonResponse.getBody().toString());
-        } catch (UnirestException ex) {
-            mLogger.println("Failed to get version: " + ex.toString());
-            throw new AptlyRestException(ex.toString());
+            JSONObject res = sendRequest(req);
+            mLogger.println("Version response" + res.toString());
+            retval = res.getString("Version");
+            return retval;
         }
-        
-        if (jsonResponse.getStatus() != 200){
-            throw new AptlyRestException(jsonResponse.getBody().toString());
+        catch(AptlyRestException e){
+            throw e;
         }
-        retval = jsonResponse.getBody().getObject().getString("Version");
-        return retval;
     }
 
     
@@ -135,17 +165,12 @@ public class AptlyRestClient {
         try {
             HttpRequestWithBody req = Unirest.post(mSite.getUrl() +
                                          "/api/files/" + uploaddir);
-            req = req.header("accept", "application/json");
-            setupAuth(req);
-            HttpResponse<JsonNode> jsonResponse = req.field("file", filepaths).asJson();
-            mLogger.printf("Response code: <%d>, body <%s>\n",
-                    jsonResponse.getStatus(), jsonResponse.getBody().toString());
-            if (jsonResponse.getStatus() != 200){
-                throw new AptlyRestException(jsonResponse.getBody().toString());
-            }
-        } catch (UnirestException ex) {
+            req.field("file", filepaths);
+            JSONObject res = sendRequest(req);
+        }
+        catch (AptlyRestException ex) {
             mLogger.printf("Failed to upload the packages: %s\n", ex.toString());
-            throw new AptlyRestException(ex.toString());
+            throw ex;
         }
     }
 
@@ -156,18 +181,13 @@ public class AptlyRestClient {
         try {
             HttpRequestWithBody req = Unirest.post(mSite.getUrl() +
                                             "/api/repos/"+ reponame +"/file/" + uploaddir);
-            req = req.header("accept", "application/json");
-            setupAuth(req);
-            HttpResponse<JsonNode> jsonResponse = req.queryString("forceReplace", "1").asJson();
-
-            mLogger.printf("Response code: <%d>, body <%s>\n",
-                    jsonResponse.getStatus(), jsonResponse.getBody().toString());
-            if (jsonResponse.getStatus() != 200){
-                throw new AptlyRestException(jsonResponse.getBody().toString());
-            }
-        } catch (UnirestException ex) {
+            req.queryString("forceReplace", "1");
+            JSONObject res = sendRequest(req);
+            mLogger.printf("Uploaded packages added to repo, response: %s\n", res.toString());
+        }
+        catch (AptlyRestException ex) {
             mLogger.printf("Failed to add uploaded packages to repo: %s\n", ex.toString());
-            throw new AptlyRestException(ex.toString());
+            throw ex;
         }
     }
 
@@ -177,22 +197,17 @@ public class AptlyRestClient {
         try {
             HttpRequestWithBody req = Unirest.put(mSite.getUrl() + "/api/publish/"
                                                   + prefix + "/" + distribution);
-            req = req.header("accept", "application/json");
             req = req.header("Content-Type", "application/json");
-            setupAuth(req);
             JSONObject options = new JSONObject();
             options.put("ForceOverwrite", true);
             options.put("Signing",buildSigningJson());
-            //System.out.println(">>>>>>>>>>>>>>>>>>>>> JSON:" + options.toString());
-            HttpResponse<JsonNode> jsonResponse = req.body(options.toString()).asJson();
-            mLogger.printf("Response code: <%d>, body <%s>\n",
-                    jsonResponse.getStatus(), jsonResponse.getBody().toString());
-            if (jsonResponse.getStatus() != 200){
-                throw new AptlyRestException(jsonResponse.getBody().toString());
-            }
-        } catch (UnirestException ex) {
+            req.body(options.toString());
+            JSONObject res = sendRequest(req);
+            
+        } 
+        catch (AptlyRestException ex) {
             mLogger.printf("Failed to publish repo: " + ex.toString());
-            throw new AptlyRestException(ex.toString());
+            throw ex;
         }
     }
 
