@@ -25,13 +25,12 @@
 package org.jenkinsci.plugins.aptly;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.*;
 
 import hudson.Extension;
 import hudson.model.Describable;
 import hudson.model.Descriptor;
 import hudson.model.Hudson;
+import jenkins.model.Jenkins;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -83,7 +82,7 @@ public class PackageItem implements Describable<PackageItem>, Serializable {
     }
 
     public void setPrefixName(String repositoryName) {
-        this.prefixName = prefixName;
+        this.prefixName = repositoryName;
     }
 
     public void setDistributionName(String distributionName) {
@@ -99,8 +98,9 @@ public class PackageItem implements Describable<PackageItem>, Serializable {
      * Get the descriptor.
      * @return descriptor
      */
+    @Override
     public Descriptor getDescriptor() {
-        Descriptor ds = Hudson.getInstance().getDescriptorOrDie(getClass());
+        Descriptor ds = Jenkins.getInstance().getDescriptorOrDie(getClass());
         return ds;
     }
 

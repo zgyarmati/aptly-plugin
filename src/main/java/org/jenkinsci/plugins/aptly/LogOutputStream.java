@@ -16,6 +16,7 @@ public class LogOutputStream extends java.io.OutputStream {
     private String lineSeparator = System.getProperty("line.separator");
     private StringBuffer buffer = new StringBuffer();
 
+    @Override
     public void write(int b) throws IOException {
         char ch = (char) b;
         this.buffer.append(ch);

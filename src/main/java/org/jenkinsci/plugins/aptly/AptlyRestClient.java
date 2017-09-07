@@ -24,42 +24,27 @@
 
 package org.jenkinsci.plugins.aptly;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.JsonNode;
+
+
 import org.json.JSONObject;
 import org.json.JSONArray;
-import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
-import com.mashape.unirest.request.GetRequest;
-import com.mashape.unirest.request.HttpRequestWithBody;
-import com.mashape.unirest.request.body.MultipartBody;
 
-import org.apache.commons.lang.StringUtils;
 import java.io.PrintStream;
-import java.io.IOException;
-import java.io.Console;
 import java.util.List;
 import java.io.File;
 
 import javax.net.ssl.SSLContext;
-import javax.security.cert.CertificateException;
-import javax.security.cert.X509Certificate;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.conn.ssl.*;
+
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.request.HttpRequest;
-
-import java.security.NoSuchAlgorithmException;
-
+import com.mashape.unirest.request.GetRequest;
+import com.mashape.unirest.request.HttpRequestWithBody;
 
 
 /**

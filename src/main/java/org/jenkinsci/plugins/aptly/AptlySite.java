@@ -24,21 +24,11 @@
 
 package org.jenkinsci.plugins.aptly;
 
-import hudson.FilePath;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.util.Map;
-
 import org.apache.commons.lang.StringUtils;
-
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+
 /**
  * This class represents an Aptly site's connection and authentication details
  * @author $Author: zgyarmati <mr.zoltan.gyarmati@gmail.com>
