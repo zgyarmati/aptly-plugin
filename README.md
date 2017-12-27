@@ -56,7 +56,7 @@ https://groups.google.com/forum/#!topic/aptly-discuss/QhgkRlR577w
 https://morph027.gitlab.io/post/protect-aptly-api-with-basic-authentication/
 https://pypkg.com/pypi/pyptly/f/pyptly/api.py
 
-## Usacases
+## Usecases
 * One package into one repository
 * Multiple packages into one repository
 * Packages from dir into one repository
